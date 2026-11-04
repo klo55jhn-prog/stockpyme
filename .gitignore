@@ -1,0 +1,27 @@
+# Secretos y configuración local
+.env
+*.local
+local.properties
+
+# Java / Maven
+target/
+*.class
+*.log
+
+# Android / Gradle
+.gradle/
+build/
+captures/
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Sistema
+.DS_Store
+Thumbs.db
