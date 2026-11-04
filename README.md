@@ -17,4 +17,4 @@ App de gestión de inventario para pequeños comercios. Proyecto de práctica pa
 
 ## Estado
 
-Fase 1 (análisis) en curso. Todavía no hay código.
+Fase 1 (análisis) completada. Fase 2 (diseño) en curso: modelo de datos listo. Todavía no hay código.
