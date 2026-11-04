@@ -149,13 +149,44 @@ Lo elegimos para detallarlo porque es el que más reglas de integridad toca.
 
 **Reglas que aplica:** 2, 4, 5 y 6 (apartado 1.4).
 
-### 2.3 Permisos por rol
+### 2.3 Caso de uso detallado: CU-03 Crear producto
+
+| Campo | Contenido |
+|---|---|
+| Actor principal | Propietario |
+| Precondición | El usuario ha iniciado sesión como propietario. Existe al menos una categoría (CU-06) |
+| Disparador | El comercio incorpora un producto que no estaba dado de alta |
+
+**Flujo principal**
+
+1. El propietario abre el formulario de nuevo producto.
+2. Introduce el nombre, la categoría, el precio de compra, el precio de venta y el stock mínimo. Puede introducir también el código de barras y el proveedor (CU-12), que son opcionales.
+3. La app valida los campos y los envía a la API.
+4. El servidor comprueba que el código de barras no esté ya registrado y que la categoría exista.
+5. El servidor guarda el producto con `stock_actual = 0`.
+6. La app muestra el producto creado y ofrece registrar su stock inicial con una entrada (CU-07).
+
+**Flujos alternativos**
+
+- **A1. Código de barras repetido:** el servidor rechaza la operación y no crea nada. La app indica que ese código ya pertenece a otro producto.
+- **A2. Campos obligatorios vacíos** (nombre, categoría, precios o stock mínimo): la app lo avisa antes de enviar.
+- **A3. Precio negativo o stock mínimo negativo:** la app lo rechaza, y el servidor lo vuelve a comprobar.
+- **A4. Categoría inexistente o desactivada:** el servidor rechaza la operación. La app pide elegir otra categoría.
+- **A5. Empleado intenta crear un producto:** el servidor responde con error de permisos (D9). La app no muestra el botón de crear.
+
+**Postcondición:** existe un producto nuevo y activo con `stock_actual = 0`. Si se ha introducido un código de barras, es único en toda la base de datos.
+
+**Reglas que aplica:** 1 y 3 no aplican directamente, pero sí la idea central de la sección 7 del análisis: el stock solo cambia mediante movimientos. Por eso el stock inicial no se escribe en el formulario, sino que se registra después como entrada (CU-07). Así queda constancia de quién lo añadió y cuándo.
+
+> Pregunta de defensa: ¿por qué no dejar que el propietario escriba el stock inicial directamente en el formulario? Respuesta: porque rompería la regla de que todo cambio de stock deja un movimiento registrado.
+
+### 2.4 Permisos por rol
 
 | # | Decisión | Motivo |
 |---|---|---|
 | D9 | El empleado no crea ni edita productos, categorías, proveedores ni empleados, y no hace ajustes | Reduce errores y manipulaciones. Un ajuste corrige el stock sin venta de por medio, así que se reserva al propietario |
 
-### 2.4 Preguntas abiertas de diseño
+### 2.5 Preguntas abiertas de diseño
 
 1. ¿Hace falta distinguir una salida por venta de una por merma? El modelo actual no lo guarda. Opciones: añadir un campo, o usar `motivo` también en las salidas.
 2. ¿El empleado puede ver el precio de compra de los productos, o solo el de venta?
