@@ -95,3 +95,67 @@ erDiagram
 6. Dos operaciones sobre el mismo producto no pueden leer el stock a la vez. Para eso se bloquea la fila del producto mientras dura la transacción (`SELECT ... FOR UPDATE`). Esto evita que dos salidas simultáneas dejen el stock en negativo.
 
 > Las reglas 1 a 3 se comprueban en el servidor y, cuando es posible, también con `CHECK` en la base de datos. La regla 6 es la que más se pregunta en la defensa, así que conviene entenderla bien.
+
+## 2. Casos de uso
+
+### 2.1 Lista de casos de uso
+
+| ID | Caso de uso | Actor | Requisito | Prioridad |
+|---|---|---|---|---|
+| CU-01 | Iniciar sesión | Todos | RF-01 | Alta |
+| CU-02 | Cerrar sesión | Todos | RF-01 | Alta |
+| CU-03 | Crear producto | Propietario | RF-02 | Alta |
+| CU-04 | Editar o desactivar producto | Propietario | RF-02 | Alta |
+| CU-05 | Buscar producto por nombre o código | Todos | RF-03 | Alta |
+| CU-06 | Gestionar categorías | Propietario | RF-04 | Alta |
+| CU-07 | Registrar entrada de stock | Todos | RF-05 | Alta |
+| CU-08 | Registrar salida de stock | Todos | RF-06 | Alta |
+| CU-09 | Registrar ajuste de stock | Propietario | RF-07 | Alta |
+| CU-10 | Consultar historial de un producto | Todos | RF-08 | Alta |
+| CU-11 | Consultar productos bajo el mínimo | Todos | RF-09 | Alta |
+| CU-12 | Gestionar proveedores | Propietario | RF-10 | Media |
+| CU-13 | Gestionar empleados | Propietario | RF-11 | Media |
+
+El escaneo con cámara (RF-12) no es un caso de uso nuevo: es otra forma de hacer CU-05. Los informes (RF-13) y las notificaciones (RF-14) se detallarán cuando llegue su momento.
+
+### 2.2 Caso de uso detallado: CU-08 Registrar salida de stock
+
+Lo elegimos para detallarlo porque es el que más reglas de integridad toca.
+
+| Campo | Contenido |
+|---|---|
+| Actor principal | Empleado o Propietario |
+| Precondición | El usuario ha iniciado sesión. El producto existe y está activo |
+| Disparador | Sale mercancía de la tienda (venta o merma) |
+
+**Flujo principal**
+
+1. El usuario busca el producto (CU-05) o escanea su código de barras.
+2. La app muestra el nombre del producto y su stock actual.
+3. El usuario indica la cantidad a sacar (entero mayor que 0).
+4. La app envía la salida a la API.
+5. El servidor, dentro de una transacción, bloquea la fila del producto, comprueba que hay stock suficiente, crea el movimiento SALIDA con cantidad negativa y reduce `stock_actual`.
+6. La app muestra el nuevo stock.
+
+**Flujos alternativos**
+
+- **A1. Stock insuficiente:** el servidor rechaza la operación y no cambia nada. La app indica cuántas unidades hay.
+- **A2. Cantidad no válida** (cero, negativa o vacía): la app lo avisa antes de enviar, y el servidor lo vuelve a comprobar.
+- **A3. Producto inactivo:** la app no lo ofrece. Si llega igualmente, el servidor lo rechaza.
+- **A4. Dos salidas a la vez:** la segunda espera a que termine la primera y después comprueba el stock ya actualizado (regla 6).
+- **A5. Sin conexión:** la app muestra un error y no guarda nada. No hay modo sin conexión (fuera de alcance).
+
+**Postcondición:** existe un movimiento SALIDA nuevo, `stock_actual` ha bajado en la misma cantidad y, si queda por debajo del mínimo, el producto aparece en CU-11.
+
+**Reglas que aplica:** 2, 4, 5 y 6 (apartado 1.4).
+
+### 2.3 Permisos por rol
+
+| # | Decisión | Motivo |
+|---|---|---|
+| D9 | El empleado no crea ni edita productos, categorías, proveedores ni empleados, y no hace ajustes | Reduce errores y manipulaciones. Un ajuste corrige el stock sin venta de por medio, así que se reserva al propietario |
+
+### 2.4 Preguntas abiertas de diseño
+
+1. ¿Hace falta distinguir una salida por venta de una por merma? El modelo actual no lo guarda. Opciones: añadir un campo, o usar `motivo` también en las salidas.
+2. ¿El empleado puede ver el precio de compra de los productos, o solo el de venta?
