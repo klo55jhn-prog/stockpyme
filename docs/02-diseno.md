@@ -190,3 +190,64 @@ Lo elegimos para detallarlo porque es el que más reglas de integridad toca.
 
 1. ¿Hace falta distinguir una salida por venta de una por merma? El modelo actual no lo guarda. Opciones: añadir un campo, o usar `motivo` también en las salidas.
 2. ¿El empleado puede ver el precio de compra de los productos, o solo el de venta?
+
+## 3. Arquitectura
+
+### 3.1 Vista general
+
+```mermaid
+flowchart TB
+    subgraph ANDROID["App Android (Kotlin)"]
+        UI["Pantallas (Jetpack Compose)"] --> VM["ViewModel"]
+        VM --> REPO_APP["Repositorio"]
+        REPO_APP --> RETROFIT["Cliente HTTP (Retrofit)"]
+    end
+
+    RETROFIT -- "HTTPS + token JWT" --> SEG
+
+    subgraph BACKEND["API REST (Spring Boot)"]
+        SEG["Seguridad: valida token y rol"] --> CTRL["Controller"]
+        CTRL --> SVC["Service: reglas de negocio"]
+        SVC --> REPO["Repository (JPA)"]
+    end
+
+    REPO --> DB[("Base de datos relacional (Docker)")]
+```
+
+### 3.2 Capas del backend
+
+| Capa | Ejemplo de clase | Responsabilidad | Lo que NO hace |
+|---|---|---|---|
+| Seguridad | `JwtFilter`, `SecurityConfig` | Comprueba el token y el rol antes de llegar al controlador | No conoce el negocio |
+| Controller | `ProductoController` | Recibe la petición HTTP, valida el formato y devuelve la respuesta | No tiene lógica de stock ni consultas SQL |
+| Service | `MovimientoService` | Aplica las reglas (CU-07 a CU-09), abre las transacciones y bloquea la fila del producto | No sabe nada de HTTP |
+| Repository | `ProductoRepository` | Lee y guarda datos (Spring Data JPA) | No tiene reglas de negocio |
+| Entity | `Producto` | Representa una tabla de la base de datos | No se envía nunca tal cual a la app |
+| DTO | `ProductoDto`, `SalidaRequest` | Lo que entra y sale por la API | Evita exponer campos internos como `password_hash` |
+
+> Las reglas de negocio viven en el **Service** y no en el Controller. Así se pueden probar con pruebas automáticas sin arrancar el servidor ni la base de datos (requisito RNF-07).
+
+### 3.3 Recorrido de una petición: registrar una salida (CU-08)
+
+1. La petición llega con el token JWT. El filtro de seguridad comprueba que el token es válido y que el rol puede hacer esa operación.
+2. El Controller valida que la cantidad sea un número entero y pasa los datos al Service.
+3. El Service abre una transacción, bloquea la fila del producto (regla 6), comprueba el stock y crea el movimiento.
+4. El Repository guarda el movimiento y el nuevo `stock_actual`.
+5. Si todo va bien, la transacción se confirma y el Controller devuelve el producto actualizado como DTO. Si algo falla, la transacción se deshace entera.
+
+### 3.4 Capas de la app Android (MVVM)
+
+| Capa | Responsabilidad |
+|---|---|
+| Pantallas (Compose) | Muestran el estado y envían las acciones del usuario. No llaman a la API |
+| ViewModel | Guarda el estado de la pantalla y sobrevive a los giros del móvil |
+| Repositorio | Decide de dónde vienen los datos. En este proyecto, siempre de la API |
+| Cliente HTTP (Retrofit) | Hace las llamadas REST y convierte el JSON en objetos Kotlin |
+
+### 3.5 Decisiones de arquitectura
+
+| # | Decisión | Motivo |
+|---|---|---|
+| D10 | Backend en capas: Controller, Service, Repository | Cada capa tiene una sola responsabilidad. Es el estándar en Spring y fácil de explicar en la defensa |
+| D11 | Android con MVVM y Jetpack Compose | Es la forma recomendada hoy en Android. El ViewModel evita perder datos al girar el móvil |
+| D12 | Sin base de datos local en el móvil (sin Room) | No hay modo sin conexión (fuera de alcance). Una caché local añadiría sincronización y complejidad sin aportar nada ahora |

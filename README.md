@@ -18,4 +18,4 @@ App de gestión de inventario para pequeños comercios. Proyecto de práctica pa
 
 ## Estado
 
-Fase 1 (análisis) completada. Fase 2 (diseño) en curso: modelo de datos y casos de uso listos. Pendientes: arquitectura, API REST y bocetos de pantallas. Todavía no hay código.
+Fase 1 (análisis) completada. Fase 2 (diseño) en curso: modelo de datos, casos de uso y arquitectura listos. Pendientes: API REST y bocetos de pantallas. Todavía no hay código.
