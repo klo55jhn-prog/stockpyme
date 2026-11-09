@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" role="img" aria-label="Logo de StockPyme">
+  <defs>
+    <linearGradient id="fondo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#14B8A6"/>
+      <stop offset="1" stop-color="#0B4F4A"/>
+    </linearGradient>
+  </defs>
+  <rect width="108" height="108" rx="26" fill="url(#fondo)"/>
+  <ellipse cx="54" cy="84" rx="26" ry="5" fill="#000" fill-opacity="0.2"/>
+  <path d="M54 20L80 33L54 46L28 33Z" fill="#fff"/>
+  <path d="M28 38L51.5 49.8L51.5 79L28 67.2Z" fill="#D5F5EF"/>
+  <path d="M56.5 49.8L80 38L80 67.2L56.5 79Z" fill="#A7E3D9"/>
+  <path d="M38.4 27.8L43.6 25.2L69.6 38.2L64.4 40.8Z" fill="#FBBF24"/>
+  <path d="M64.4 45.4L69.6 42.8L69.6 55.8L64.4 58.4Z" fill="#F59E0B"/>
+</svg>

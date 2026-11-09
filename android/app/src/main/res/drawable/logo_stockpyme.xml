@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Logo completo (fondo redondeado + caja) para usarlo dentro de la app, por ejemplo en el login. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:pathData="M26,0H82A26,26 0,0 1,108 26V82A26,26 0,0 1,82 108H26A26,26 0,0 1,0 82V26A26,26 0,0 1,26 0Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="0"
+                android:startY="0"
+                android:endX="108"
+                android:endY="108">
+                <item android:offset="0" android:color="#FF14B8A6" />
+                <item android:offset="1" android:color="#FF0B4F4A" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <path
+        android:fillColor="#33000000"
+        android:pathData="M28,84a26,5 0,1 0,52 0a26,5 0,1 0,-52 0z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M54,20L80,33L54,46L28,33Z" />
+    <path
+        android:fillColor="#FFD5F5EF"
+        android:pathData="M28,38L51.5,49.8L51.5,79L28,67.2Z" />
+    <path
+        android:fillColor="#FFA7E3D9"
+        android:pathData="M56.5,49.8L80,38L80,67.2L56.5,79Z" />
+    <path
+        android:fillColor="#FFFBBF24"
+        android:pathData="M38.4,27.8L43.6,25.2L69.6,38.2L64.4,40.8Z" />
+    <path
+        android:fillColor="#FFF59E0B"
+        android:pathData="M64.4,45.4L69.6,42.8L69.6,55.8L64.4,58.4Z" />
+</vector>

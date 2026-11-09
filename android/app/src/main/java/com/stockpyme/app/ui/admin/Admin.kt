@@ -1,9 +1,16 @@
 package com.stockpyme.app.ui.admin
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.material.icons.outlined.Category
+import androidx.compose.ui.text.font.FontWeight
+import com.stockpyme.app.ui.comun.Avatar
+import com.stockpyme.app.ui.comun.FilaTarjeta
+import com.stockpyme.app.ui.comun.IconoRedondo
+import com.stockpyme.app.ui.comun.Pildora
+import com.stockpyme.app.ui.comun.colorPara
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -16,10 +23,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHostState
@@ -116,7 +121,11 @@ private fun <T> PantallaLista(
         onAtras = onAtras,
         snackbar = snackbar,
         botonFlotante = {
-            FloatingActionButton(onClick = onNuevo) { Icon(Icons.Filled.Add, contentDescription = "Añadir") }
+            ExtendedFloatingActionButton(
+                onClick = onNuevo,
+                icon = { Icon(Icons.Filled.Add, contentDescription = null) },
+                text = { Text("Añadir") },
+            )
         },
     ) { margenes ->
         EstadoLista(
@@ -127,11 +136,12 @@ private fun <T> PantallaLista(
             onReintentar = vm::cargar,
             modifier = Modifier.padding(margenes),
         ) {
-            LazyColumn(Modifier.padding(margenes).fillMaxSize()) {
-                items(vm.elementos, key = clave) { elemento ->
-                    fila(elemento)
-                    HorizontalDivider()
-                }
+            LazyColumn(
+                modifier = Modifier.padding(margenes).fillMaxSize(),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 96.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                items(vm.elementos, key = clave) { elemento -> fila(elemento) }
             }
         }
     }
@@ -191,7 +201,11 @@ fun PantallaCategorias(onAtras: () -> Unit) {
         onNuevo = { editando = Categoria(0, "") },
         clave = { it.id },
     ) { c ->
-        ListItem(modifier = Modifier.clickable { editando = c }, headlineContent = { Text(c.nombre) })
+        FilaTarjeta(
+            onClick = { editando = c },
+            inicio = { IconoRedondo(Icons.Outlined.Category, colorPara(c.nombre)) },
+            titulo = { Text(c.nombre, fontWeight = FontWeight.SemiBold) },
+        )
     }
 
     editando?.let { c ->
@@ -246,11 +260,21 @@ fun PantallaProveedores(onAtras: () -> Unit) {
         onNuevo = { editando = Proveedor(0, "", null, null, true) },
         clave = { it.id },
     ) { p ->
-        ListItem(
-            modifier = Modifier.clickable { editando = p },
-            headlineContent = { Text(if (p.activo) p.nombre else "${p.nombre} (desactivado)") },
-            supportingContent = {
+        FilaTarjeta(
+            onClick = { editando = p },
+            inicio = { Avatar(p.nombre) },
+            titulo = {
+                Text(
+                    p.nombre,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (p.activo) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outline,
+                )
+            },
+            subtitulo = {
                 Text(listOfNotNull(p.telefono, p.email).joinToString(" · ").ifBlank { "Sin datos de contacto" })
+            },
+            fin = if (p.activo) null else {
+                { Pildora("Inactivo", MaterialTheme.colorScheme.outline, MaterialTheme.colorScheme.surfaceVariant, punto = false) }
             },
         )
     }
@@ -313,12 +337,24 @@ fun PantallaUsuarios(actual: Usuario, onAtras: () -> Unit) {
         onNuevo = { editando = Usuario(0, "", "", Usuario.ROL_EMPLEADO, true) },
         clave = { it.id },
     ) { u ->
-        ListItem(
-            modifier = Modifier.clickable { editando = u },
-            headlineContent = {
-                Text(u.nombre + (if (u.id == actual.id) " (tú)" else "") + (if (!u.activo) " (desactivado)" else ""))
+        FilaTarjeta(
+            onClick = { editando = u },
+            inicio = { Avatar(u.nombre) },
+            titulo = {
+                Text(
+                    u.nombre + (if (u.id == actual.id) " (tú)" else ""),
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (u.activo) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outline,
+                )
             },
-            supportingContent = { Text("${u.email} · ${if (u.esPropietario) "Propietario" else "Empleado"}") },
+            subtitulo = { Text(u.email) },
+            fin = {
+                when {
+                    !u.activo -> Pildora("Inactivo", MaterialTheme.colorScheme.outline, MaterialTheme.colorScheme.surfaceVariant, punto = false)
+                    u.esPropietario -> Pildora("Propietario", MaterialTheme.colorScheme.onPrimaryContainer, MaterialTheme.colorScheme.primaryContainer, punto = false)
+                    else -> Pildora("Empleado", MaterialTheme.colorScheme.onSecondaryContainer, MaterialTheme.colorScheme.secondaryContainer, punto = false)
+                }
+            },
         )
     }
 

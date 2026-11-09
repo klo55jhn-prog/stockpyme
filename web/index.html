@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>StockPyme · Inventario para pequeños comercios</title>
+  <meta name="description" content="StockPyme es la app de inventario para tiendas y pequeños comercios: controla tu stock desde el móvil, escanea códigos de barras y recibe avisos antes de quedarte sin producto.">
+  <link rel="icon" href="img/logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --marca: #0F766E;
+      --marca-clara: #14B8A6;
+      --marca-oscura: #0B4F4A;
+      --ambar: #F59E0B;
+      --texto: #0F1A1A;
+      --texto-suave: #52625F;
+      --fondo: #FFFFFF;
+      --fondo-alt: #F3F7F6;
+      --borde: #E2EAE8;
+      --tarjeta: #FFFFFF;
+      --sombra: 0 1px 2px rgba(15, 26, 26, .06), 0 8px 24px rgba(15, 26, 26, .06);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --texto: #E6EEEC;
+        --texto-suave: #9FB0AD;
+        --fondo: #0B1413;
+        --fondo-alt: #101C1B;
+        --borde: #22302E;
+        --tarjeta: #131F1E;
+        --sombra: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
+      }
+    }
+    :root[data-theme="dark"] {
+      --texto: #E6EEEC;
+      --texto-suave: #9FB0AD;
+      --fondo: #0B1413;
+      --fondo-alt: #101C1B;
+      --borde: #22302E;
+      --tarjeta: #131F1E;
+      --sombra: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+      color: var(--texto);
+      background: var(--fondo);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    img { max-width: 100%; display: block; }
+    a { color: inherit; }
+    .contenedor { width: min(1120px, 100% - 32px); margin-inline: auto; }
+
+    /* ---------- Cabecera ---------- */
+    header.barra {
+      position: sticky; top: 0; z-index: 10;
+      background: color-mix(in srgb, var(--fondo) 85%, transparent);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--borde);
+    }
+    .barra .contenedor { display: flex; align-items: center; justify-content: space-between; height: 68px; }
+    .marca { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.2rem; text-decoration: none; }
+    .marca img { width: 36px; height: 36px; }
+    nav.menu { display: flex; gap: 28px; align-items: center; }
+    nav.menu a { text-decoration: none; color: var(--texto-suave); font-weight: 500; font-size: .95rem; }
+    nav.menu a:hover { color: var(--texto); }
+
+    .boton {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 12px 22px; border-radius: 999px; font-weight: 700; font-size: .95rem;
+      text-decoration: none; border: 0; cursor: pointer; transition: transform .15s, box-shadow .15s;
+    }
+    .boton:hover { transform: translateY(-1px); }
+    .boton-primario { background: var(--marca); color: #fff; box-shadow: 0 6px 16px rgba(15, 118, 110, .3); }
+    .boton-blanco { background: #fff; color: var(--marca-oscura); }
+    .boton-borde { background: transparent; color: inherit; border: 1.5px solid currentColor; }
+
+    /* ---------- Portada ---------- */
+    .portada {
+      background: linear-gradient(135deg, var(--marca-clara), var(--marca-oscura));
+      color: #fff; overflow: hidden; position: relative;
+    }
+    .portada::after {
+      content: ""; position: absolute; inset: auto -10% -40% auto; width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(251, 191, 36, .25), transparent 65%);
+      pointer-events: none;
+    }
+    .portada .contenedor {
+      display: grid; grid-template-columns: 1.1fr .9fr; gap: 48px; align-items: center;
+      padding-block: 80px 0; position: relative; z-index: 1;
+    }
+    .etiqueta {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255, 255, 255, .15); border: 1px solid rgba(255, 255, 255, .25);
+      padding: 6px 14px; border-radius: 999px; font-size: .85rem; font-weight: 600;
+    }
+    .etiqueta span { width: 8px; height: 8px; border-radius: 50%; background: #FBBF24; }
+    h1 { font-size: clamp(2.2rem, 5vw, 3.6rem); line-height: 1.08; letter-spacing: -.03em; margin: 20px 0 18px; font-weight: 800; }
+    h1 em { font-style: normal; color: #FDE68A; }
+    .portada p.entrada { font-size: 1.15rem; opacity: .9; max-width: 520px; margin: 0 0 32px; }
+    .acciones { display: flex; gap: 12px; flex-wrap: wrap; }
+    .confianza { display: flex; gap: 28px; margin: 40px 0 80px; flex-wrap: wrap; }
+    .confianza div strong { display: block; font-size: 1.6rem; font-weight: 800; }
+    .confianza div { font-size: .9rem; opacity: .85; }
+
+    .movil {
+      width: 280px; border-radius: 40px; padding: 10px; background: #0b0f0f;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, .35), inset 0 0 0 2px #2a3331;
+    }
+    .movil img { border-radius: 30px; width: 100%; }
+    .portada .moviles { position: relative; height: 560px; }
+    .portada .moviles .movil { position: absolute; }
+    .portada .moviles .uno { left: 0; top: 40px; transform: rotate(-4deg); }
+    .portada .moviles .dos { right: 0; top: 0; transform: rotate(4deg); }
+
+    /* ---------- Secciones ---------- */
+    section { padding-block: 96px; }
+    .alt { background: var(--fondo-alt); }
+    .encabezado { text-align: center; max-width: 680px; margin: 0 auto 56px; }
+    .encabezado .antetitulo { color: var(--marca); font-weight: 700; text-transform: uppercase; letter-spacing: .08em; font-size: .8rem; }
+    h2 { font-size: clamp(1.8rem, 3.5vw, 2.6rem); line-height: 1.15; letter-spacing: -.02em; margin: 10px 0 14px; font-weight: 800; }
+    .encabezado p { color: var(--texto-suave); font-size: 1.1rem; margin: 0; }
+
+    .rejilla { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .tarjeta {
+      background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 20px;
+      padding: 28px; box-shadow: var(--sombra);
+    }
+    .tarjeta h3 { margin: 18px 0 8px; font-size: 1.15rem; }
+    .tarjeta p { margin: 0; color: var(--texto-suave); }
+    .icono {
+      width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center;
+      background: color-mix(in srgb, var(--c, var(--marca)) 14%, transparent); color: var(--c, var(--marca));
+    }
+    .icono svg { width: 24px; height: 24px; }
+
+    /* Problema / solución */
+    .problema { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .problema .tarjeta ul { list-style: none; padding: 0; margin: 16px 0 0; display: grid; gap: 12px; }
+    .problema li { display: flex; gap: 12px; align-items: flex-start; }
+    .problema li::before { content: ""; flex: none; width: 22px; height: 22px; border-radius: 50%; margin-top: 2px; background: var(--punto) center/14px no-repeat; }
+    .mal li { --punto: #FEE2E2 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23DC2626' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M6 6l12 12M18 6L6 18'/%3E%3C/svg%3E"); }
+    .bien li { --punto: #DCFCE7 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2315803D' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5L20 7'/%3E%3C/svg%3E"); }
+    .bien { border-color: color-mix(in srgb, var(--marca) 40%, var(--borde)); }
+
+    /* Capturas */
+    .galeria { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; justify-items: center; }
+    .galeria figure { margin: 0; text-align: center; }
+    .galeria .movil { width: 100%; max-width: 240px; }
+    .galeria figcaption { margin-top: 16px; font-weight: 700; }
+    .galeria figcaption span { display: block; font-weight: 400; color: var(--texto-suave); font-size: .92rem; }
+
+    /* Pasos */
+    .pasos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; counter-reset: paso; }
+    .pasos .tarjeta { position: relative; }
+    .pasos .tarjeta::before {
+      counter-increment: paso; content: counter(paso);
+      display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%;
+      background: var(--marca); color: #fff; font-weight: 800;
+    }
+
+    /* Precios */
+    .precios { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; align-items: stretch; }
+    .plan { display: flex; flex-direction: column; }
+    .plan h3 { margin: 0; }
+    .plan .precio { font-size: 2.6rem; font-weight: 800; letter-spacing: -.03em; margin: 12px 0 0; }
+    .plan .precio small { font-size: 1rem; font-weight: 500; color: var(--texto-suave); }
+    .plan ul { list-style: none; padding: 0; margin: 20px 0 28px; display: grid; gap: 10px; flex: 1; }
+    .plan li { padding-left: 28px; position: relative; color: var(--texto-suave); }
+    .plan li::before { content: "✓"; position: absolute; left: 0; color: var(--marca); font-weight: 800; }
+    .plan .boton { width: 100%; }
+    .plan.destacado { background: linear-gradient(160deg, var(--marca), var(--marca-oscura)); color: #fff; border: 0; transform: scale(1.03); }
+    .plan.destacado li, .plan.destacado .precio small { color: rgba(255, 255, 255, .85); }
+    .plan.destacado li::before { color: #FDE68A; }
+    .plan .insignia { align-self: flex-start; background: #FBBF24; color: #422006; font-size: .75rem; font-weight: 800; padding: 4px 10px; border-radius: 999px; margin-bottom: 12px; }
+    .nota { text-align: center; color: var(--texto-suave); margin-top: 28px; font-size: .92rem; }
+
+    /* Preguntas */
+    .preguntas { max-width: 760px; margin: 0 auto; display: grid; gap: 12px; }
+    details { background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 16px; padding: 18px 22px; }
+    summary { cursor: pointer; font-weight: 700; list-style: none; display: flex; justify-content: space-between; gap: 16px; }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: "+"; font-size: 1.4rem; line-height: 1; color: var(--marca); }
+    details[open] summary::after { content: "–"; }
+    details p { margin: 12px 0 0; color: var(--texto-suave); }
+
+    /* Llamada final */
+    .final {
+      background: linear-gradient(135deg, var(--marca-clara), var(--marca-oscura));
+      color: #fff; border-radius: 28px; padding: 64px 32px; text-align: center;
+    }
+    .final h2 { margin-top: 0; }
+    .final p { opacity: .9; font-size: 1.1rem; margin: 0 auto 28px; max-width: 520px; }
+    .final .acciones { justify-content: center; }
+
+    form.contacto { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; max-width: 520px; margin: 0 auto; }
+    form.contacto input {
+      flex: 1 1 240px; padding: 13px 18px; border-radius: 999px; border: 0; font: inherit; font-size: .95rem;
+    }
+    .gracias { margin-top: 14px; font-weight: 600; min-height: 1.6em; }
+
+    footer { padding-block: 40px; border-top: 1px solid var(--borde); color: var(--texto-suave); font-size: .9rem; }
+    footer .contenedor { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+
+    /* ---------- Móvil ---------- */
+    @media (max-width: 900px) {
+      nav.menu a:not(.boton) { display: none; }
+      .portada .contenedor { grid-template-columns: 1fr; padding-top: 56px; }
+      .portada .moviles { height: 440px; max-width: 420px; width: 100%; margin: 0 auto; }
+      .portada .moviles .movil { width: 210px; }
+      .confianza { margin-bottom: 24px; }
+      .rejilla, .pasos, .precios { grid-template-columns: 1fr; }
+      .problema { grid-template-columns: 1fr; }
+      .galeria { grid-template-columns: repeat(2, 1fr); }
+      .plan.destacado { transform: none; }
+      section { padding-block: 64px; }
+    }
+    @media (max-width: 480px) {
+      .portada .moviles { height: 360px; }
+      .portada .moviles .movil { width: 170px; border-radius: 28px; padding: 7px; }
+      .portada .moviles .movil img { border-radius: 22px; }
+      .galeria { gap: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="barra">
+  <div class="contenedor">
+    <a href="#" class="marca"><img src="img/logo.svg" alt="">StockPyme</a>
+    <nav class="menu">
+      <a href="#funciones">Funciones</a>
+      <a href="#capturas">La app</a>
+      <a href="#precios">Precios</a>
+      <a href="#preguntas">Preguntas</a>
+      <a href="#empezar" class="boton boton-primario">Pruébala gratis</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <!-- Portada -->
+  <section class="portada" style="padding:0">
+    <div class="contenedor">
+      <div>
+        <span class="etiqueta"><span></span>Para tiendas, ferreterías, bazares y kioscos</span>
+        <h1>Tu inventario, <em>siempre al día</em> y en el bolsillo</h1>
+        <p class="entrada">StockPyme registra cada entrada y salida de mercancía desde el móvil, te avisa antes de que algo se agote y te dice cuánto vale lo que tienes en la tienda.</p>
+        <div class="acciones">
+          <a href="#empezar" class="boton boton-blanco">Empezar gratis</a>
+          <a href="#capturas" class="boton boton-borde">Ver la app</a>
+        </div>
+        <div class="confianza">
+          <div><strong>2 toques</strong>para registrar una venta</div>
+          <div><strong>0</strong>stock negativo, nunca</div>
+          <div><strong>100 %</strong>de cambios con historial</div>
+        </div>
+      </div>
+      <div class="moviles" aria-hidden="true">
+        <div class="movil uno"><img src="img/productos.png" alt=""></div>
+        <div class="movil dos"><img src="img/detalle.png" alt=""></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Problema -->
+  <section>
+    <div class="contenedor">
+      <div class="encabezado">
+        <div class="antetitulo">El problema</div>
+        <h2>Las libretas y las hojas de cálculo no avisan cuando algo se acaba</h2>
+        <p>En un comercio pequeño el stock se descuadra sin que nadie se dé cuenta, hasta que un cliente pide algo que ya no tienes.</p>
+      </div>
+      <div class="problema">
+        <div class="tarjeta mal">
+          <h3>Sin StockPyme</h3>
+          <ul>
+            <li>Descubres que te has quedado sin producto cuando ya lo has perdido de vender.</li>
+            <li>Nadie sabe quién sacó esas cinco cajas ni por qué.</li>
+            <li>Contar el almacén lleva una tarde entera y el resultado no cuadra.</li>
+            <li>No sabes cuánto dinero tienes inmovilizado en las estanterías.</li>
+          </ul>
+        </div>
+        <div class="tarjeta bien">
+          <h3>Con StockPyme</h3>
+          <ul>
+            <li>Un aviso te dice qué reponer antes de que se agote, y a qué proveedor pedírselo.</li>
+            <li>Cada movimiento guarda quién lo hizo, cuándo y el motivo.</li>
+            <li>Escaneas el código de barras y registras la venta en dos toques.</li>
+            <li>Ves al momento el valor de tu inventario y lo que más se mueve.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Funciones -->
+  <section id="funciones" class="alt">
+    <div class="contenedor">
+      <div class="encabezado">
+        <div class="antetitulo">Funciones</div>
+        <h2>Todo lo que necesita un comercio, nada que sobre</h2>
+        <p>Diseñada para usarla de pie, detrás del mostrador, con una mano.</p>
+      </div>
+      <div class="rejilla">
+        <div class="tarjeta">
+          <div class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 8v8M11 8v8M15 8v8M18 8v8"/></svg></div>
+          <h3>Escáner de códigos de barras</h3>
+          <p>Apunta con la cámara y el producto aparece. Si no existe, lo das de alta con el código ya puesto.</p>
+        </div>
+        <div class="tarjeta" style="--c:#B45309">
+          <div class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></div>
+          <h3>Alertas de stock bajo</h3>
+          <p>Cada producto tiene su mínimo. Cuando lo alcanza, aparece en Alertas con su proveedor para que repongas a tiempo.</p>
+        </div>
+        <div class="tarjeta" style="--c:#2563EB">
+          <div class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5M12 7v5l4 2"/></svg></div>
+          <h3>Historial completo</h3>
+          <p>Entradas, salidas y ajustes quedan registrados con usuario, fecha y motivo. Nada se borra, todo se puede revisar.</p>
+        </div>
+        <div class="tarjeta" style="--c:#7C3AED">
+          <div class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <h3>Propietario y empleados</h3>
+          <p>Tus empleados registran ventas y entradas. Los ajustes, los precios y las cuentas, solo tú.</p>
+        </div>
+        <div class="tarjeta" style="--c:#0891B2">
+          <div class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></div>
+          <h3>Resumen del negocio</h3>
+          <p>Valor del inventario a precio de coste y de venta, unidades en stock y los productos que más se mueven.</p>
+        </div>
+        <div class="tarjeta" style="--c:#15803D">
+          <div class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
+          <h3>Stock siempre cuadrado</h3>
+          <p>Aunque dos empleados vendan lo mismo a la vez, el stock nunca baja de cero ni se pierde una unidad.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Capturas -->
+  <section id="capturas">
+    <div class="contenedor">
+      <div class="encabezado">
+        <div class="antetitulo">La app</div>
+        <h2>Clara, rápida y pensada para el día a día</h2>
+        <p>Colores que se entienden de un vistazo: verde, todo bien; ámbar, toca reponer; rojo, agotado.</p>
+      </div>
+      <div class="galeria">
+        <figure>
+          <div class="movil"><img src="img/productos.png" alt="Lista de productos con su stock" loading="lazy"></div>
+          <figcaption>Productos<span>Busca o escanea</span></figcaption>
+        </figure>
+        <figure>
+          <div class="movil"><img src="img/detalle.png" alt="Ficha de un producto con su historial" loading="lazy"></div>
+          <figcaption>Ficha<span>Stock, margen e historial</span></figcaption>
+        </figure>
+        <figure>
+          <div class="movil"><img src="img/alertas.png" alt="Alertas de productos con stock bajo" loading="lazy"></div>
+          <figcaption>Alertas<span>Qué reponer y a quién</span></figcaption>
+        </figure>
+        <figure>
+          <div class="movil"><img src="img/resumen.png" alt="Resumen con el valor del inventario" loading="lazy"></div>
+          <figcaption>Resumen<span>Tu negocio en cifras</span></figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cómo empezar -->
+  <section class="alt">
+    <div class="contenedor">
+      <div class="encabezado">
+        <div class="antetitulo">Cómo empezar</div>
+        <h2>Funcionando en una tarde</h2>
+      </div>
+      <div class="pasos">
+        <div class="tarjeta">
+          <h3>Da de alta tus productos</h3>
+          <p>Nombre, precio y código de barras. Escanéalos uno a uno o crea las categorías primero.</p>
+        </div>
+        <div class="tarjeta">
+          <h3>Registra el stock inicial</h3>
+          <p>Cuenta lo que tienes y anótalo como una entrada. A partir de ahí, el número se mantiene solo.</p>
+        </div>
+        <div class="tarjeta">
+          <h3>Invita a tu equipo</h3>
+          <p>Crea una cuenta para cada empleado. Cada venta queda firmada por quien la registra.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Precios -->
+  <section id="precios">
+    <div class="contenedor">
+      <div class="encabezado">
+        <div class="antetitulo">Precios</div>
+        <h2>Un precio pequeño para un comercio pequeño</h2>
+        <p>Sin permanencia. Cambia de plan o cancela cuando quieras.</p>
+      </div>
+      <div class="precios">
+        <div class="tarjeta plan">
+          <h3>Gratis</h3>
+          <div class="precio">0 € <small>/ mes</small></div>
+          <ul>
+            <li>Hasta 50 productos</li>
+            <li>1 usuario (propietario)</li>
+            <li>Escáner y alertas de stock</li>
+            <li>Historial de 30 días</li>
+          </ul>
+          <a href="#empezar" class="boton boton-borde">Empezar gratis</a>
+        </div>
+        <div class="tarjeta plan destacado">
+          <span class="insignia">El más elegido</span>
+          <h3>Comercio</h3>
+          <div class="precio">9 € <small>/ mes</small></div>
+          <ul>
+            <li>Productos ilimitados</li>
+            <li>Hasta 5 usuarios</li>
+            <li>Historial completo</li>
+            <li>Resumen del inventario</li>
+            <li>Soporte por email</li>
+          </ul>
+          <a href="#empezar" class="boton boton-blanco">Probar 30 días gratis</a>
+        </div>
+        <div class="tarjeta plan">
+          <h3>Varias tiendas</h3>
+          <div class="precio">19 € <small>/ mes</small></div>
+          <ul>
+            <li>Todo lo del plan Comercio</li>
+            <li>Usuarios ilimitados</li>
+            <li>Instalación en tu propio servidor</li>
+            <li>Soporte prioritario</li>
+          </ul>
+          <a href="#empezar" class="boton boton-borde">Hablar con nosotros</a>
+        </div>
+      </div>
+      <p class="nota">Precios sin IVA.</p>
+    </div>
+  </section>
+
+  <!-- Preguntas -->
+  <section id="preguntas" class="alt">
+    <div class="contenedor">
+      <div class="encabezado">
+        <div class="antetitulo">Preguntas frecuentes</div>
+        <h2>Lo que nos suelen preguntar</h2>
+      </div>
+      <div class="preguntas">
+        <details>
+          <summary>¿Necesito un lector de códigos de barras?</summary>
+          <p>No. La app usa la cámara del móvil para leer los códigos. Tampoco hace falta escanear: puedes buscar cualquier producto por su nombre.</p>
+        </details>
+        <details>
+          <summary>¿Qué pasa si dos empleados venden lo mismo a la vez?</summary>
+          <p>El servidor procesa las ventas de una en una sobre cada producto. Si solo queda una unidad, la segunda venta se rechaza con un aviso claro y el stock nunca se queda en negativo.</p>
+        </details>
+        <details>
+          <summary>¿Puede un empleado cambiar el stock a su gusto?</summary>
+          <p>No. Los empleados registran entradas y salidas. Los ajustes por recuento, los precios y las cuentas de usuario solo los puede tocar el propietario, y cada ajuste exige un motivo.</p>
+        </details>
+        <details>
+          <summary>¿Funciona en cualquier móvil?</summary>
+          <p>Funciona en móviles Android 8.0 o superior, que son prácticamente todos los que se usan hoy.</p>
+        </details>
+        <details>
+          <summary>¿Dónde se guardan mis datos?</summary>
+          <p>En una base de datos en el servidor, no en el móvil. Si pierdes o cambias de teléfono, entras con tu cuenta y lo tienes todo. Con el plan Varias tiendas puedes instalarlo en tu propio servidor.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- Llamada final -->
+  <section id="empezar">
+    <div class="contenedor">
+      <div class="final">
+        <h2>Deja de contar a mano</h2>
+        <p>Déjanos tu email y te enviamos el enlace de descarga y tu cuenta de prueba.</p>
+        <form class="contacto" id="formulario">
+          <input type="email" required placeholder="tu@comercio.es" aria-label="Tu email">
+          <button type="submit" class="boton boton-blanco">Quiero probarla</button>
+        </form>
+        <div class="gracias" id="gracias" aria-live="polite"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="contenedor">
+    <a href="#" class="marca" style="font-size:1rem"><img src="img/logo.svg" alt="" style="width:28px;height:28px">StockPyme</a>
+    <span>Proyecto de fin de grado · Desarrollo de Aplicaciones Multiplataforma</span>
+  </div>
+</footer>
+
+<script>
+  // Formulario de demostración: no envía nada a ningún servidor.
+  document.getElementById('formulario').addEventListener('submit', function (e) {
+    e.preventDefault();
+    document.getElementById('gracias').textContent = '¡Gracias! Te escribiremos muy pronto.';
+    this.reset();
+  });
+</script>
+</body>
+</html>

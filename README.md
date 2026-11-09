@@ -61,7 +61,13 @@ Para pararlo: `docker compose down`. Para borrar también los datos y empezar de
 3. Pulsa **Probar conexión**. Si falla, revisa que el Firewall de Windows permita conexiones entrantes al puerto 8080.
 4. En Android 17 o superior, acepta el permiso de **dispositivos cercanos**. Es el que deja a la app conectar con equipos de tu red local.
 
-### 3. Pruebas automáticas
+### 3. Web de presentación
+
+La carpeta `web` tiene la página para promocionar la app: funciones, capturas reales, precios y preguntas frecuentes. Es HTML y CSS sin dependencias: basta con abrir `web/index.html` en el navegador o subir la carpeta a GitHub Pages, Netlify o cualquier hosting estático.
+
+El formulario de contacto es de demostración y no envía datos a ningún sitio.
+
+### 4. Pruebas automáticas
 
 ```bash
 cd backend
@@ -83,6 +89,8 @@ backend/        API REST (Spring Boot)
 android/        App móvil (Kotlin + Compose)
   datos/          Retrofit, sesión y repositorio
   ui/             Pantallas y ViewModels
+  res/drawable/   Logo e icono adaptativo de la app
+web/            Página web de presentación
 docs/           Análisis, diseño y contrato de la API
 docker-compose.yml
 ```
