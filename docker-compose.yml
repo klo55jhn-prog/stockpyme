@@ -1,0 +1,45 @@
+# Arranca la base de datos y la API con un solo comando (RNF-06):
+#   docker compose up -d --build
+# Las contraseñas por defecto son solo para desarrollo. Para cambiarlas,
+# crea un archivo .env junto a este (está en .gitignore) con DB_PASSWORD, DB_ROOT_PASSWORD y JWT_SECRET.
+
+services:
+  db:
+    image: mysql:8.4
+    container_name: stockpyme-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: stockpyme
+      MYSQL_USER: stockpyme
+      MYSQL_PASSWORD: ${DB_PASSWORD:-stockpyme}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+      TZ: UTC
+    ports:
+      # Fuera de Docker se accede por el 3310, para no chocar con otro MySQL instalado en el PC
+      - "${DB_PORT:-3310}:3306"
+    volumes:
+      - datos-mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  api:
+    build: ./backend
+    container_name: stockpyme-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:mysql://db:3306/stockpyme?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USER: stockpyme
+      DB_PASSWORD: ${DB_PASSWORD:-stockpyme}
+      JWT_SECRET: ${JWT_SECRET:-secreto-solo-para-desarrollo-cambialo-en-produccion-1234}
+      DATOS_DEMO: "true"
+    ports:
+      - "8080:8080"
+
+volumes:
+  datos-mysql:

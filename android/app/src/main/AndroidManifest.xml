@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!--
+        Android 17 (API 37) bloquea por defecto las conexiones a equipos de la red local
+        (por ejemplo, el PC donde corre la API). Este permiso se pide al abrir la app.
+    -->
+    <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
+
+    <!--
+        usesCleartextTraffic permite HTTP sin cifrar para conectar con el servidor de desarrollo
+        de tu PC. En producción la API iría por HTTPS (RNF-04) y esto se quitaría.
+        allowBackup="false" evita que el token de sesión se copie en las copias de seguridad.
+    -->
+    <application
+        android:name=".StockPymeApp"
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.StockPyme"
+        android:usesCleartextTraffic="true">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>
