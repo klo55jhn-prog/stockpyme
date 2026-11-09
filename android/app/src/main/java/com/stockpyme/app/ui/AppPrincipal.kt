@@ -2,11 +2,18 @@ package com.stockpyme.app.ui
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Inventory2
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.outlined.AccountCircle
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.Inventory2
+import androidx.compose.material.icons.outlined.NotificationsActive
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -14,6 +21,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -56,13 +66,18 @@ object Rutas {
     fun editar(id: Long) = "producto/$id/editar"
 }
 
-private data class Pestana(val ruta: String, val titulo: String, val icono: ImageVector)
+private data class Pestana(
+    val ruta: String,
+    val titulo: String,
+    val icono: ImageVector,
+    val iconoSinMarcar: ImageVector,
+)
 
 private val pestanas = listOf(
-    Pestana(Rutas.PRODUCTOS, "Productos", Icons.Filled.Inventory2),
-    Pestana(Rutas.ALERTAS, "Alertas", Icons.Filled.Warning),
-    Pestana(Rutas.ACTIVIDAD, "Actividad", Icons.Filled.History),
-    Pestana(Rutas.MAS, "Más", Icons.Filled.Menu),
+    Pestana(Rutas.PRODUCTOS, "Productos", Icons.Filled.Inventory2, Icons.Outlined.Inventory2),
+    Pestana(Rutas.ALERTAS, "Alertas", Icons.Filled.NotificationsActive, Icons.Outlined.NotificationsActive),
+    Pestana(Rutas.ACTIVIDAD, "Actividad", Icons.Filled.History, Icons.Outlined.History),
+    Pestana(Rutas.MAS, "Más", Icons.Filled.AccountCircle, Icons.Outlined.AccountCircle),
 )
 
 @Composable
@@ -71,19 +86,29 @@ fun AppPrincipal(usuario: Usuario) {
     val repo = repositorio()
     val entrada by nav.currentBackStackEntryAsState()
     val rutaActual = entrada?.destination?.route
+    var alertas by remember { mutableIntStateOf(0) }
 
     // Al abrir la app comprueba que la sesión sigue siendo válida y si ha cambiado el rol.
     LaunchedEffect(Unit) { repo.refrescarUsuario() }
+    // Número de la pestaña Alertas: se actualiza al cambiar de pantalla (por ejemplo, tras una salida).
+    LaunchedEffect(rutaActual) { repo.bajoMinimo().onSuccess { alertas = it.size } }
 
     Scaffold(
         bottomBar = {
             if (pestanas.any { it.ruta == rutaActual }) {
-                NavigationBar {
+                NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainer) {
                     pestanas.forEach { pestana ->
+                        val marcada = rutaActual == pestana.ruta
                         NavigationBarItem(
-                            selected = rutaActual == pestana.ruta,
+                            selected = marcada,
                             onClick = { irAPestana(nav, pestana.ruta) },
-                            icon = { Icon(pestana.icono, contentDescription = null) },
+                            icon = {
+                                BadgedBox(badge = {
+                                    if (pestana.ruta == Rutas.ALERTAS && alertas > 0) Badge { Text("$alertas") }
+                                }) {
+                                    Icon(if (marcada) pestana.icono else pestana.iconoSinMarcar, contentDescription = null)
+                                }
+                            },
                             label = { Text(pestana.titulo) },
                         )
                     }

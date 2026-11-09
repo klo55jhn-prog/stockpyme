@@ -1,22 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Icono: una caja de inventario. El lienzo es 108x108 y la zona visible segura es el centro de 66x66. -->
+<!--
+    Logo de StockPyme: una caja de inventario con la cinta de embalar en ámbar.
+    El lienzo es 108x108 y la zona visible segura es el círculo central de 66 de diámetro.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    <!-- Sombra -->
+    <path
+        android:fillColor="#33000000"
+        android:pathData="M32,80a22,4.5 0,1 0,44 0a22,4.5 0,1 0,-44 0z" />
     <!-- Tapa -->
     <path
-        android:fillColor="@color/icono_frente"
-        android:pathData="M54,30 L78,41 L54,52 L30,41 Z" />
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M54,28L76,39L54,50L32,39Z" />
     <!-- Cara izquierda -->
     <path
-        android:fillColor="@color/icono_frente"
-        android:fillAlpha="0.85"
-        android:pathData="M30,45 L52,55 L52,79 L30,68 Z" />
+        android:fillColor="#FFD5F5EF"
+        android:pathData="M32,43L52,53L52,78L32,68Z" />
     <!-- Cara derecha -->
     <path
-        android:fillColor="@color/icono_frente"
-        android:fillAlpha="0.65"
-        android:pathData="M56,55 L78,45 L78,68 L56,79 Z" />
+        android:fillColor="#FFA7E3D9"
+        android:pathData="M56,53L76,43L76,68L56,78Z" />
+    <!-- Cinta sobre la tapa -->
+    <path
+        android:fillColor="#FFFBBF24"
+        android:pathData="M40.8,34.6L45.2,32.4L67.2,43.4L62.8,45.6Z" />
+    <!-- Cinta bajando por la cara derecha -->
+    <path
+        android:fillColor="#FFF59E0B"
+        android:pathData="M62.8,49.6L67.2,47.4L67.2,58.4L62.8,60.6Z" />
 </vector>
