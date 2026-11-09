@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icono: una caja de inventario. El lienzo es 108x108 y la zona visible segura es el centro de 66x66. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Tapa -->
+    <path
+        android:fillColor="@color/icono_frente"
+        android:pathData="M54,30 L78,41 L54,52 L30,41 Z" />
+    <!-- Cara izquierda -->
+    <path
+        android:fillColor="@color/icono_frente"
+        android:fillAlpha="0.85"
+        android:pathData="M30,45 L52,55 L52,79 L30,68 Z" />
+    <!-- Cara derecha -->
+    <path
+        android:fillColor="@color/icono_frente"
+        android:fillAlpha="0.65"
+        android:pathData="M56,55 L78,45 L78,68 L56,79 Z" />
+</vector>

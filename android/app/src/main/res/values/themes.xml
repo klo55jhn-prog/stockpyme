@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tema base de la ventana. Los colores de la app se definen en Compose (ui/tema/Tema.kt). -->
+    <style name="Theme.StockPyme" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>
