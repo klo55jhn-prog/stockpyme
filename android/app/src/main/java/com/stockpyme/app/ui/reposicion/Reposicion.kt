@@ -119,7 +119,7 @@ fun PantallaReposicion(onAtras: () -> Unit) {
             modifier = Modifier.padding(margenes),
         ) {
             LazyColumn(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.padding(margenes).fillMaxSize(),
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
