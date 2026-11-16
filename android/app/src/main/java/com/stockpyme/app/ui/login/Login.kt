@@ -129,29 +129,11 @@ fun PantallaLogin() {
     var verServidor by remember { mutableStateOf(false) }
     val guardarUrl: (String) -> Unit = { datosSesion.urlServidor = it }
 
-    // La cabecera es oscura: iconos de la barra de estado en blanco mientras se ve el login.
-    val vista = LocalView.current
-    DisposableEffect(Unit) {
-        val ventana = (vista.context as? Activity)?.window
-        val control = ventana?.let { WindowCompat.getInsetsController(it, vista) }
-        val antes = control?.isAppearanceLightStatusBars
-        control?.isAppearanceLightStatusBars = false
-        onDispose { if (antes != null) control.isAppearanceLightStatusBars = antes }
-    }
-
     Box(
         Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
     ) {
-        // Fondo de la cabecera con el degradado de la marca
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(340.dp)
-                .background(Brush.linearGradient(listOf(MarcaClara, MarcaOscura))),
-        )
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -159,38 +141,24 @@ fun PantallaLogin() {
                 .navigationBarsPadding()
                 .imePadding()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+                .padding(horizontal = 24.dp),
         ) {
-            Spacer(Modifier.height(36.dp))
-            Logo(84.dp)
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(40.dp))
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Logo(44.dp)
+                Text("StockPyme", style = MaterialTheme.typography.titleLarge)
+            }
+            Spacer(Modifier.height(40.dp))
+            Text("Hola de nuevo", style = MaterialTheme.typography.headlineLarge)
+            Spacer(Modifier.height(6.dp))
             Text(
-                "StockPyme",
-                style = MaterialTheme.typography.headlineLarge,
-                color = Color.White,
+                "Entra para ver cómo va tu tienda hoy.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Text(
-                "El inventario de tu comercio, siempre al día",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.White.copy(alpha = 0.85f),
-            )
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(28.dp))
 
-            // Tarjeta del formulario
-            Surface(
-                shape = MaterialTheme.shapes.extraLarge,
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
-                shadowElevation = 8.dp,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                    Text("Inicia sesión", style = MaterialTheme.typography.headlineSmall)
-                    Text(
-                        "Entra con la cuenta que te ha dado el propietario del comercio.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                     OutlinedTextField(
                         value = vm.email,
                         onValueChange = { vm.email = it },
@@ -198,6 +166,7 @@ fun PantallaLogin() {
                         leadingIcon = { Icon(Icons.Outlined.Email, contentDescription = null) },
                         singleLine = true,
                         shape = MaterialTheme.shapes.medium,
+                        colors = coloresCampo(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
                         modifier = Modifier.fillMaxWidth(),
                     )
@@ -208,6 +177,7 @@ fun PantallaLogin() {
                         leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null) },
                         singleLine = true,
                         shape = MaterialTheme.shapes.medium,
+                        colors = coloresCampo(),
                         visualTransformation = if (verPassword) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(onDone = { vm.entrar(guardarUrl) }),
@@ -229,7 +199,7 @@ fun PantallaLogin() {
                         onClick = { vm.entrar(guardarUrl) },
                         enabled = !vm.ocupado,
                         shape = MaterialTheme.shapes.medium,
-                        modifier = Modifier.fillMaxWidth().height(54.dp),
+                        modifier = Modifier.fillMaxWidth().height(56.dp),
                     ) {
                         if (vm.ocupado) {
                             CircularProgressIndicator(
@@ -241,33 +211,24 @@ fun PantallaLogin() {
                             Text("Entrar", style = MaterialTheme.typography.titleMedium)
                         }
                     }
-                }
             }
 
             // Cuentas de demostración: un toque rellena el formulario
-            Spacer(Modifier.height(20.dp))
-            Text(
-                "Probar con una cuenta de demostración",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                AssistChip(
-                    onClick = { vm.rellenarDemo("admin@stockpyme.local", "admin1234") },
-                    label = { Text("Propietario") },
-                    leadingIcon = { Icon(Icons.Outlined.Storefront, contentDescription = null, Modifier.size(18.dp)) },
-                )
-                AssistChip(
-                    onClick = { vm.rellenarDemo("empleado@stockpyme.local", "empleado1234") },
-                    label = { Text("Empleado") },
-                    leadingIcon = { Icon(Icons.Outlined.Badge, contentDescription = null, Modifier.size(18.dp)) },
-                )
+            Spacer(Modifier.height(32.dp))
+            Text("Cuentas de demostración", style = MaterialTheme.typography.titleSmall)
+            Spacer(Modifier.height(10.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                CuentaDemo(Icons.Outlined.Storefront, "Propietario", "Lo ve todo", Modifier.weight(1f)) {
+                    vm.rellenarDemo("admin@stockpyme.local", "admin1234")
+                }
+                CuentaDemo(Icons.Outlined.Badge, "Empleado", "Vende y repone", Modifier.weight(1f)) {
+                    vm.rellenarDemo("empleado@stockpyme.local", "empleado1234")
+                }
             }
 
             // Servidor: oculto por defecto para no liar a quien solo quiere entrar
-            Spacer(Modifier.height(12.dp))
-            TextButton(onClick = { verServidor = !verServidor }) {
+            Spacer(Modifier.height(16.dp))
+            TextButton(onClick = { verServidor = !verServidor }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
                 Icon(Icons.Outlined.Dns, contentDescription = null, Modifier.size(18.dp))
                 Spacer(Modifier.size(8.dp))
                 Text(if (verServidor) "Ocultar servidor" else "Servidor: ${vm.servidor}")
@@ -316,5 +277,36 @@ private fun Aviso(texto: String, esError: Boolean) {
             modifier = Modifier.size(20.dp),
         )
         Text(texto, color = color, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+    }
+}
+
+/** Campos sobre fondo blanco con el borde fino del resto de la app. */
+@Composable
+private fun coloresCampo() = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+)
+
+@Composable
+private fun CuentaDemo(
+    icono: androidx.compose.ui.graphics.vector.ImageVector,
+    titulo: String,
+    detalle: String,
+    modifier: Modifier,
+    onClick: () -> Unit,
+) {
+    com.stockpyme.app.ui.comun.Tarjeta(modifier, onClick = onClick) {
+        Row(
+            Modifier.padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            com.stockpyme.app.ui.comun.IconoRedondo(icono, MaterialTheme.colorScheme.tertiary, tamano = 36.dp)
+            Column {
+                Text(titulo, style = MaterialTheme.typography.labelLarge)
+                Text(detalle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+            }
+        }
     }
 }

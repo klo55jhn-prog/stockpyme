@@ -42,7 +42,7 @@ fun GraficaBarras(
     etiquetas: List<String>,
     detalle: (Int) -> String,
     modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colorScheme.primary,
+    color: Color = MaterialTheme.colorScheme.tertiary,
     altura: Dp = 130.dp,
 ) {
     if (valores.isEmpty()) return
@@ -79,7 +79,7 @@ fun GraficaBarras(
                             .fillMaxWidth()
                             .fillMaxHeight(fraccion)
                             .background(
-                                if (i == seleccionada) color else color.copy(alpha = 0.3f),
+                                if (i == seleccionada) color else color.copy(alpha = 0.22f),
                                 RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp, bottomStart = 2.dp, bottomEnd = 2.dp),
                             ),
                     )

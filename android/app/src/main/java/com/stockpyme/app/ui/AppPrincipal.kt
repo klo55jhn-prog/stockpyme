@@ -1,5 +1,24 @@
 package com.stockpyme.app.ui
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Surface
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
@@ -81,10 +100,10 @@ private data class Pestana(
     val iconoSinMarcar: ImageVector,
 )
 
+// Cuatro pestañas y, en el centro, el botón de vender (lo que más se hace en una tienda).
 private val pestanas = listOf(
     Pestana(Rutas.INICIO, "Inicio", Icons.Filled.Home, Icons.Outlined.Home),
     Pestana(Rutas.PRODUCTOS, "Productos", Icons.Filled.Inventory2, Icons.Outlined.Inventory2),
-    Pestana(Rutas.ALERTAS, "Alertas", Icons.Filled.NotificationsActive, Icons.Outlined.NotificationsActive),
     Pestana(Rutas.ACTIVIDAD, "Actividad", Icons.Filled.History, Icons.Outlined.History),
     Pestana(Rutas.MAS, "Más", Icons.Filled.AccountCircle, Icons.Outlined.AccountCircle),
 )
@@ -95,33 +114,14 @@ fun AppPrincipal(usuario: Usuario) {
     val repo = repositorio()
     val entrada by nav.currentBackStackEntryAsState()
     val rutaActual = entrada?.destination?.route
-    var alertas by remember { mutableIntStateOf(0) }
 
     // Al abrir la app comprueba que la sesión sigue siendo válida y si ha cambiado el rol.
     LaunchedEffect(Unit) { repo.refrescarUsuario() }
-    // Número de la pestaña Alertas: se actualiza al cambiar de pantalla (por ejemplo, tras una salida).
-    LaunchedEffect(rutaActual) { repo.bajoMinimo().onSuccess { alertas = it.size } }
 
     Scaffold(
         bottomBar = {
             if (pestanas.any { it.ruta == rutaActual }) {
-                NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainer) {
-                    pestanas.forEach { pestana ->
-                        val marcada = rutaActual == pestana.ruta
-                        NavigationBarItem(
-                            selected = marcada,
-                            onClick = { irAPestana(nav, pestana.ruta) },
-                            icon = {
-                                BadgedBox(badge = {
-                                    if (pestana.ruta == Rutas.ALERTAS && alertas > 0) Badge { Text("$alertas") }
-                                }) {
-                                    Icon(if (marcada) pestana.icono else pestana.iconoSinMarcar, contentDescription = null)
-                                }
-                            },
-                            label = { Text(pestana.titulo) },
-                        )
-                    }
-                }
+                BarraInferior(rutaActual, onPestana = { irAPestana(nav, it) }, onVender = { nav.navigate(Rutas.VENTA) })
             }
         },
     ) { margenes ->
@@ -137,7 +137,7 @@ fun AppPrincipal(usuario: Usuario) {
                     onVender = { nav.navigate(Rutas.VENTA) },
                     onReponer = { nav.navigate(Rutas.REPOSICION) },
                     onNuevo = { codigo -> nav.navigate(Rutas.nuevo(codigo)) },
-                    onVerAlertas = { irAPestana(nav, Rutas.ALERTAS) },
+                    onVerAlertas = { nav.navigate(Rutas.ALERTAS) },
                     onVerActividad = { irAPestana(nav, Rutas.ACTIVIDAD) },
                 )
             }
@@ -151,7 +151,7 @@ fun AppPrincipal(usuario: Usuario) {
                 )
             }
             composable(Rutas.ALERTAS) {
-                PantallaAlertas(onAbrir = { nav.navigate(Rutas.detalle(it)) })
+                PantallaAlertas(onAtras = { nav.popBackStack() }, onAbrir = { nav.navigate(Rutas.detalle(it)) })
             }
             composable(Rutas.ACTIVIDAD) {
                 PantallaActividad(onAbrir = { nav.navigate(Rutas.detalle(it)) })
@@ -218,5 +218,62 @@ private fun irAPestana(nav: NavHostController, ruta: String) {
         popUpTo(nav.graph.findStartDestination().id) { saveState = true }
         launchSingleTop = true
         restoreState = true
+    }
+}
+
+/** Barra inferior propia: pestañas a los lados y el botón de vender, más grande, en el centro. */
+@Composable
+private fun BarraInferior(rutaActual: String?, onPestana: (String) -> Unit, onVender: () -> Unit) {
+    Surface(color = MaterialTheme.colorScheme.surfaceContainerLow) {
+        Column {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Row(
+                Modifier.fillMaxWidth().navigationBarsPadding().height(68.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                pestanas.take(2).forEach { ItemPestana(it, rutaActual == it.ruta, Modifier.weight(1f)) { onPestana(it.ruta) } }
+                Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                    Surface(
+                        onClick = onVender,
+                        shape = MaterialTheme.shapes.large,
+                        color = MaterialTheme.colorScheme.tertiary,
+                        contentColor = MaterialTheme.colorScheme.onTertiary,
+                        shadowElevation = 6.dp,
+                        modifier = Modifier.size(54.dp),
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(Icons.Filled.ShoppingCart, contentDescription = "Nueva venta", modifier = Modifier.size(26.dp))
+                        }
+                    }
+                }
+                pestanas.drop(2).forEach { ItemPestana(it, rutaActual == it.ruta, Modifier.weight(1f)) { onPestana(it.ruta) } }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ItemPestana(pestana: Pestana, marcada: Boolean, modifier: Modifier, onClick: () -> Unit) {
+    val color = if (marcada) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+    Column(
+        modifier
+            .fillMaxHeight()
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                role = Role.Tab,
+                onClick = onClick,
+            ),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Icon(if (marcada) pestana.icono else pestana.iconoSinMarcar, contentDescription = null, tint = color, modifier = Modifier.size(24.dp))
+        Spacer(Modifier.height(3.dp))
+        Text(
+            pestana.titulo,
+            color = color,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = if (marcada) FontWeight.Bold else FontWeight.Medium,
+        )
     }
 }

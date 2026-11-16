@@ -3,6 +3,7 @@ package com.stockpyme.app.ui.panel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -11,20 +12,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.AddBox
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.LocalShipping
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.QrCodeScanner
-import androidx.compose.material.icons.outlined.Sell
-import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
@@ -43,7 +45,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -59,22 +60,27 @@ import com.stockpyme.app.datos.Movimiento
 import com.stockpyme.app.datos.Producto
 import com.stockpyme.app.datos.Repositorio
 import com.stockpyme.app.datos.Usuario
+import com.stockpyme.app.ui.comun.BotonCabecera
+import com.stockpyme.app.ui.comun.Chip
 import com.stockpyme.app.ui.comun.EstadoLista
 import com.stockpyme.app.ui.comun.GraficaBarras
 import com.stockpyme.app.ui.comun.IconoRedondo
 import com.stockpyme.app.ui.comun.MostrarMensaje
 import com.stockpyme.app.ui.comun.Pantalla
-import com.stockpyme.app.ui.comun.PildoraStock
 import com.stockpyme.app.ui.comun.Pildora
-import com.stockpyme.app.ui.comun.TarjetaDato
-import com.stockpyme.app.ui.comun.TituloSeccion
+import com.stockpyme.app.ui.comun.PildoraStock
+import com.stockpyme.app.ui.comun.Tarjeta
+import com.stockpyme.app.ui.comun.bordeTarjeta
 import com.stockpyme.app.ui.comun.dinero
 import com.stockpyme.app.ui.comun.rememberEscaner
 import com.stockpyme.app.ui.comun.repositorio
 import com.stockpyme.app.ui.productos.FilaMovimiento
+import com.stockpyme.app.ui.tema.LocalOscuro
 import com.stockpyme.app.ui.tema.MarcaClara
-import com.stockpyme.app.ui.tema.MarcaOscura
+import com.stockpyme.app.ui.tema.Tinta
 import com.stockpyme.app.ui.tema.coloresEstado
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -165,15 +171,15 @@ fun PantallaPanel(
         onError = { vm.mensaje = it },
     )
 
+    val fecha = LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE d 'de' MMMM", ES))
+        .replaceFirstChar { it.uppercase() }
+
     Pantalla(
         titulo = "${saludo()}, ${usuario.nombre.substringBefore(' ')}",
+        subtitulo = fecha,
         snackbar = snackbar,
-        botonFlotante = {
-            ExtendedFloatingActionButton(
-                onClick = onVender,
-                icon = { Icon(Icons.Filled.ShoppingCart, contentDescription = null) },
-                text = { Text("Nueva venta") },
-            )
+        acciones = {
+            BotonCabecera(Icons.Outlined.Notifications, "Alertas de stock", onVerAlertas, aviso = vm.alertas.size)
         },
     ) { margenes ->
         PullToRefreshBox(
@@ -190,35 +196,39 @@ fun PantallaPanel(
             ) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 104.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 32.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
-                    item { Cabecera(vm, usuario) }
-                    if (usuario.esPropietario && vm.actividad != null) {
-                        item { Indicadores(vm.actividad!!, vm.dias) }
-                        item { TarjetaGrafica(vm) }
-                    }
+                    item { Resumen(vm, usuario) }
                     item {
-                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Accion(Icons.Outlined.QrCodeScanner, "Escanear", Modifier.weight(1f), escanear)
-                            Accion(Icons.Outlined.LocalShipping, "Reponer", Modifier.weight(1f), onReponer)
+                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Accion(Icons.Filled.ShoppingCart, "Vender", Modifier.weight(1f), destacada = true, onClick = onVender)
+                            Accion(Icons.Outlined.QrCodeScanner, "Escanear", Modifier.weight(1f), onClick = escanear)
+                            Accion(Icons.Outlined.LocalShipping, "Reponer", Modifier.weight(1f), onClick = onReponer)
                             if (usuario.esPropietario) {
                                 Accion(Icons.Outlined.AddBox, "Nuevo", Modifier.weight(1f)) { onNuevo(null) }
                             } else {
-                                Accion(Icons.Outlined.History, "Actividad", Modifier.weight(1f), onVerActividad)
+                                Accion(Icons.Outlined.History, "Actividad", Modifier.weight(1f), onClick = onVerActividad)
                             }
                         }
                     }
+                    if (usuario.esPropietario && vm.actividad != null) {
+                        item { TarjetaGrafica(vm) }
+                    }
                     item { TarjetaAlertas(vm.alertas, onAbrir, onVerAlertas) }
                     if (vm.recientes.isNotEmpty()) {
-                        item { TituloSeccion("Actividad reciente") }
+                        item {
+                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
+                                Text(
+                                    "Actividad reciente",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    modifier = Modifier.weight(1f).padding(start = 2.dp),
+                                )
+                                TextButton(onClick = onVerActividad) { Text("Ver todo") }
+                            }
+                        }
                         items(vm.recientes.take(5), key = { "m${it.id}" }) { m ->
                             FilaMovimiento(m, mostrarProducto = true, onClick = { onAbrir(m.productoId) })
-                        }
-                        item {
-                            TextButton(onClick = onVerActividad, modifier = Modifier.fillMaxWidth()) {
-                                Text("Ver toda la actividad")
-                            }
                         }
                     }
                 }
@@ -239,57 +249,95 @@ private fun esHoy(iso: String): Boolean = try {
     false
 }
 
-/** Tarjeta grande de arriba: ventas de hoy (propietario) o movimientos de hoy (empleado). */
+/** Diferencia en % entre las ventas de hoy y las de ayer, o null si ayer no hubo ventas. */
+private fun variacion(hoy: BigDecimal, ayer: BigDecimal?): Int? {
+    if (ayer == null || ayer.signum() <= 0) return null
+    return hoy.subtract(ayer).multiply(BigDecimal(100)).divide(ayer, 0, RoundingMode.HALF_UP).toInt()
+}
+
+/** Tarjeta oscura de arriba: ventas de hoy y cifras del periodo (propietario) o movimientos (empleado). */
 @Composable
-private fun Cabecera(vm: PanelViewModel, usuario: Usuario) {
+private fun Resumen(vm: PanelViewModel, usuario: Usuario) {
     val actividad = vm.actividad
-    val fecha = LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE d 'de' MMMM", ES))
-        .replaceFirstChar { it.uppercase() }
-    Surface(shape = MaterialTheme.shapes.extraLarge, modifier = Modifier.fillMaxWidth()) {
-        Column(
-            Modifier
-                .background(Brush.linearGradient(listOf(MarcaClara, MarcaOscura)))
-                .padding(20.dp),
-        ) {
-            Text(fecha, style = MaterialTheme.typography.labelLarge, color = Color.White.copy(alpha = 0.85f))
-            Spacer(Modifier.height(10.dp))
+    val oscuro = LocalOscuro.current
+    val suave = Color.White.copy(alpha = 0.65f)
+    Surface(
+        shape = MaterialTheme.shapes.extraLarge,
+        color = if (oscuro) MaterialTheme.colorScheme.surfaceContainerHigh else Tinta,
+        border = if (oscuro) bordeTarjeta() else null,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(20.dp)) {
             if (usuario.esPropietario && actividad != null) {
-                Text("VENTAS DE HOY", style = MaterialTheme.typography.labelMedium, color = Color.White.copy(alpha = 0.8f))
+                val ayer = actividad.dias.getOrNull(actividad.dias.size - 2)?.ventas
+                val cambio = variacion(actividad.ventasHoy, ayer)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Ventas de hoy", style = MaterialTheme.typography.bodyMedium, color = suave, modifier = Modifier.weight(1f))
+                    if (cambio != null) {
+                        val sube = cambio >= 0
+                        Text(
+                            "${if (sube) "▲" else "▼"} ${kotlin.math.abs(cambio)} % vs. ayer",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = if (sube) MarcaClara else Color(0xFFFCA5A5),
+                            modifier = Modifier
+                                .background(Color.White.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+                                .padding(horizontal = 9.dp, vertical = 4.dp),
+                        )
+                    }
+                }
+                Spacer(Modifier.height(2.dp))
                 Text(dinero(actividad.ventasHoy), style = MaterialTheme.typography.displayMedium, color = Color.White)
-                val ayer = actividad.dias.getOrNull(actividad.dias.size - 2)
-                Text(
-                    buildString {
-                        append("${actividad.movimientosHoy} movimientos hoy")
-                        if (ayer != null) append(" · Ayer ${dinero(ayer.ventas)}")
-                    },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White.copy(alpha = 0.9f),
-                )
+                Spacer(Modifier.height(16.dp))
+                HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
+                Spacer(Modifier.height(14.dp))
+                Row {
+                    Mini("Últimos ${vm.dias} días", dinero(actividad.ventasPeriodo), Modifier.weight(1.3f))
+                    Mini("Unidades", "${actividad.unidadesVendidasPeriodo}", Modifier.weight(1f))
+                    Mini("Movs. hoy", "${actividad.movimientosHoy}", Modifier.weight(1f))
+                }
             } else {
                 val hoy = vm.recientes.count { esHoy(it.fecha) }
-                Text("HOY", style = MaterialTheme.typography.labelMedium, color = Color.White.copy(alpha = 0.8f))
+                Text("Movimientos de hoy", style = MaterialTheme.typography.bodyMedium, color = suave)
+                Spacer(Modifier.height(2.dp))
                 Text("$hoy", style = MaterialTheme.typography.displayMedium, color = Color.White)
-                Text(
-                    if (hoy == 1) "movimiento registrado" else "movimientos registrados",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White.copy(alpha = 0.9f),
-                )
+                Spacer(Modifier.height(16.dp))
+                HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
+                Spacer(Modifier.height(14.dp))
+                Row {
+                    Mini("Con stock bajo", "${vm.alertas.size}", Modifier.weight(1f))
+                    Mini("Agotados", "${vm.alertas.count { it.stockActual == 0 }}", Modifier.weight(1f))
+                }
             }
         }
     }
 }
 
 @Composable
-private fun Indicadores(actividad: Actividad, dias: Int) {
-    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        TarjetaDato(
-            "Ventas · $dias días", dinero(actividad.ventasPeriodo), Icons.Outlined.Sell,
-            MaterialTheme.colorScheme.primary, Modifier.weight(1f),
-        )
-        TarjetaDato(
-            "Unidades vendidas", actividad.unidadesVendidasPeriodo.toString(), Icons.Outlined.Widgets,
-            Color(0xFF7C3AED), Modifier.weight(1f),
-        )
+private fun Mini(titulo: String, valor: String, modifier: Modifier) {
+    Column(modifier) {
+        Text(titulo, style = MaterialTheme.typography.labelMedium, color = Color.White.copy(alpha = 0.6f), maxLines = 1)
+        Text(valor, style = MaterialTheme.typography.titleMedium, color = Color.White, maxLines = 1)
+    }
+}
+
+/** Acceso rápido: icono en un cuadrado y su nombre debajo. El destacado va en el color de acento. */
+@Composable
+private fun Accion(icono: ImageVector, texto: String, modifier: Modifier, destacada: Boolean = false, onClick: () -> Unit) {
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Surface(
+            onClick = onClick,
+            shape = MaterialTheme.shapes.large,
+            color = if (destacada) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surfaceContainerLow,
+            contentColor = if (destacada) MaterialTheme.colorScheme.onTertiary else MaterialTheme.colorScheme.onSurface,
+            border = if (destacada) null else bordeTarjeta(),
+            modifier = Modifier.fillMaxWidth().height(60.dp),
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(icono, contentDescription = null, modifier = Modifier.size(24.dp))
+            }
+        }
+        Text(texto, style = MaterialTheme.typography.labelMedium, textAlign = TextAlign.Center, maxLines = 1)
     }
 }
 
@@ -297,22 +345,17 @@ private fun Indicadores(actividad: Actividad, dias: Int) {
 private fun TarjetaGrafica(vm: PanelViewModel) {
     val actividad = vm.actividad ?: return
     val dias = actividad.dias
-    Surface(
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        shadowElevation = 0.5.dp,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
+    Tarjeta(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Ventas por día", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                Text("Ventas", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf(7, 14, 30).forEach { n ->
-                        FilterChip(selected = vm.dias == n, onClick = { vm.cambiarDias(n) }, label = { Text("$n d") })
+                        Chip(selected = vm.dias == n, onClick = { vm.cambiarDias(n) }, label = { Text("$n d") })
                     }
                 }
             }
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(4.dp))
             GraficaBarras(
                 valores = dias.map { it.ventas.toFloat() },
                 etiquetas = etiquetas(dias),
@@ -337,41 +380,16 @@ private fun detalleDia(d: DiaActividad): String {
 }
 
 @Composable
-private fun Accion(icono: ImageVector, texto: String, modifier: Modifier, onClick: () -> Unit) {
-    Surface(
-        onClick = onClick,
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        shadowElevation = 0.5.dp,
-        modifier = modifier,
-    ) {
-        Column(
-            Modifier.padding(vertical = 14.dp).fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            IconoRedondo(icono, MaterialTheme.colorScheme.primary, tamano = 44.dp)
-            Text(texto, style = MaterialTheme.typography.labelLarge, textAlign = TextAlign.Center)
-        }
-    }
-}
-
-@Composable
 private fun TarjetaAlertas(alertas: List<Producto>, onAbrir: (Long) -> Unit, onVerTodas: () -> Unit) {
     val c = coloresEstado
-    Surface(
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        shadowElevation = 0.5.dp,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Column(Modifier.padding(vertical = 8.dp)) {
-            Row(Modifier.padding(start = 16.dp, end = 8.dp, top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("Stock bajo", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-                if (alertas.isNotEmpty()) {
-                    Pildora("${alertas.size}", c.aviso, c.avisoFondo, punto = false)
-                    TextButton(onClick = onVerTodas) { Text("Ver todas") }
-                }
+    Tarjeta(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(vertical = 6.dp)) {
+            Row(Modifier.padding(start = 16.dp, end = 8.dp, top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text("Hay que reponer", style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.width(8.dp))
+                if (alertas.isNotEmpty()) Pildora("${alertas.size}", c.aviso, c.avisoFondo, punto = false)
+                Spacer(Modifier.weight(1f))
+                if (alertas.isNotEmpty()) TextButton(onClick = onVerTodas) { Text("Ver todas") }
             }
             if (alertas.isEmpty()) {
                 Row(
@@ -383,9 +401,10 @@ private fun TarjetaAlertas(alertas: List<Producto>, onAbrir: (Long) -> Unit, onV
                     Text("Todo en orden: ningún producto en su mínimo", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             } else {
-                alertas.take(3).forEach { p ->
+                alertas.take(3).forEachIndexed { i, p ->
+                    if (i > 0) HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant)
                     Row(
-                        Modifier.fillMaxWidth().clickable { onAbrir(p.id) }.padding(horizontal = 16.dp, vertical = 10.dp),
+                        Modifier.fillMaxWidth().clickable { onAbrir(p.id) }.padding(horizontal = 16.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Column(Modifier.weight(1f)) {

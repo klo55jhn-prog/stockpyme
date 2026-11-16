@@ -1,5 +1,6 @@
 package com.stockpyme.app.ui.admin
 
+import com.stockpyme.app.ui.comun.Chip
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -122,6 +123,8 @@ private fun <T> PantallaLista(
         snackbar = snackbar,
         botonFlotante = {
             ExtendedFloatingActionButton(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
                 onClick = onNuevo,
                 icon = { Icon(Icons.Filled.Add, contentDescription = null) },
                 text = { Text("Añadir") },
@@ -406,12 +409,12 @@ fun PantallaUsuarios(actual: Usuario, onAtras: () -> Unit) {
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                FilterChip(
+                Chip(
                     selected = rol == Usuario.ROL_EMPLEADO,
                     onClick = { rol = Usuario.ROL_EMPLEADO },
                     label = { Text("Empleado") },
                 )
-                FilterChip(
+                Chip(
                     selected = rol == Usuario.ROL_PROPIETARIO,
                     onClick = { rol = Usuario.ROL_PROPIETARIO },
                     label = { Text("Propietario") },

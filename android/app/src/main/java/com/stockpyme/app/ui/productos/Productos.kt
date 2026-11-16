@@ -1,5 +1,9 @@
 package com.stockpyme.app.ui.productos
 
+import com.stockpyme.app.ui.comun.BotonCabecera
+import androidx.compose.foundation.border
+import com.stockpyme.app.ui.comun.Chip
+import com.stockpyme.app.ui.comun.bordeTarjeta
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -184,13 +188,13 @@ fun PantallaProductos(usuario: Usuario, onAbrir: (Long) -> Unit, onNuevo: (Strin
         titulo = "Productos",
         snackbar = snackbar,
         acciones = {
-            IconButton(onClick = escanear) {
-                Icon(Icons.Filled.QrCodeScanner, contentDescription = "Escanear código de barras")
-            }
+            BotonCabecera(Icons.Filled.QrCodeScanner, "Escanear código de barras", escanear)
         },
         botonFlotante = {
             if (usuario.esPropietario) {
                 ExtendedFloatingActionButton(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
                     onClick = { onNuevo(null) },
                     icon = { Icon(Icons.Filled.Add, contentDescription = null) },
                     text = { Text("Nuevo") },
@@ -206,13 +210,13 @@ fun PantallaProductos(usuario: Usuario, onAbrir: (Long) -> Unit, onNuevo: (Strin
                 modifier = Modifier.padding(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                FilterChip(
+                Chip(
                     selected = vm.soloBajos,
                     onClick = { vm.soloBajos = !vm.soloBajos },
                     label = { Text(if (bajos > 0) "Stock bajo ($bajos)" else "Stock bajo") },
                 )
                 if (usuario.esPropietario) {
-                    FilterChip(
+                    Chip(
                         selected = vm.incluirInactivos,
                         onClick = { vm.cambiarInactivos(!vm.incluirInactivos) },
                         label = { Text("Desactivados") },
@@ -226,7 +230,7 @@ fun PantallaProductos(usuario: Usuario, onAbrir: (Long) -> Unit, onNuevo: (Strin
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     items(vm.categorias) { c ->
-                        FilterChip(
+                        Chip(
                             selected = vm.categoria == c,
                             onClick = { vm.categoria = if (vm.categoria == c) null else c },
                             label = { Text(c) },
@@ -241,7 +245,7 @@ fun PantallaProductos(usuario: Usuario, onAbrir: (Long) -> Unit, onNuevo: (Strin
             ) {
                 Text("Orden:", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 listOf("nombre" to "Nombre", "stock" to "Menos stock", "precio" to "Precio").forEach { (clave, texto) ->
-                    FilterChip(selected = vm.orden == clave, onClick = { vm.orden = clave }, label = { Text(texto) })
+                    Chip(selected = vm.orden == clave, onClick = { vm.orden = clave }, label = { Text(texto) })
                 }
             }
 
@@ -284,14 +288,15 @@ private fun CampoBusqueda(texto: String, onCambio: (String) -> Unit) {
             }
         },
         singleLine = true,
-        shape = CircleShape,
+        shape = MaterialTheme.shapes.medium,
         colors = TextFieldDefaults.colors(
             focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
             unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
         ),
-        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.medium),
     )
 }
 
@@ -364,12 +369,12 @@ class AlertasViewModel(private val repo: Repositorio) : ViewModel() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PantallaAlertas(onAbrir: (Long) -> Unit) {
+fun PantallaAlertas(onAtras: () -> Unit, onAbrir: (Long) -> Unit) {
     val repo = repositorio()
     val vm: AlertasViewModel = viewModel { AlertasViewModel(repo) }
     LaunchedEffect(Unit) { vm.cargar() }
 
-    Pantalla(titulo = "Alertas de stock") { margenes ->
+    Pantalla(titulo = "Alertas de stock", onAtras = onAtras) { margenes ->
         PullToRefreshBox(
             isRefreshing = vm.cargando && vm.productos.isNotEmpty(),
             onRefresh = vm::cargar,
@@ -433,7 +438,7 @@ private fun TarjetaAlerta(p: Producto, onClick: () -> Unit) {
         onClick = onClick,
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surfaceContainerLow,
-        shadowElevation = 0.5.dp,
+        border = bordeTarjeta(),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(Modifier.padding(16.dp)) {

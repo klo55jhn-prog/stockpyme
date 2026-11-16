@@ -1,5 +1,6 @@
 package com.stockpyme.app.ui.actividad
 
+import com.stockpyme.app.ui.comun.Chip
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Column
@@ -95,7 +96,7 @@ fun PantallaActividad(onAbrir: (Long) -> Unit) {
             listOf<Pair<String?, String>>(
                 null to "Todo", "ENTRADA" to "Entradas", "SALIDA" to "Salidas", "AJUSTE" to "Ajustes",
             ).forEach { (tipo, texto) ->
-                FilterChip(selected = vm.filtro == tipo, onClick = { vm.filtro = tipo }, label = { Text(texto) })
+                Chip(selected = vm.filtro == tipo, onClick = { vm.filtro = tipo }, label = { Text(texto) })
             }
         }
         PullToRefreshBox(

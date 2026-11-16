@@ -1,5 +1,7 @@
 package com.stockpyme.app.ui.productos
 
+import androidx.compose.foundation.layout.Box
+import com.stockpyme.app.ui.comun.bordeTarjeta
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -220,57 +222,52 @@ fun PantallaDetalle(productoId: Long, usuario: Usuario, onAtras: () -> Unit, onE
     }
 }
 
-/** Tarjeta grande con el stock: verde de marca si todo va bien, ámbar o roja si hay que reponer. */
+/** Tarjeta del stock: número grande, estado y una barra que muestra cuánto queda respecto al mínimo. */
 @Composable
 private fun Cabecera(p: Producto) {
     val estado = p.estadoStock()
-    val degradado = when (estado) {
-        EstadoStock.OK -> listOf(MarcaClara, MarcaOscura)
-        EstadoStock.BAJO -> listOf(Color(0xFFF59E0B), Color(0xFFB45309))
-        EstadoStock.AGOTADO -> listOf(Color(0xFFEF4444), Color(0xFF991B1B))
-        EstadoStock.INACTIVO -> listOf(Color(0xFF94A3B8), Color(0xFF475569))
-    }
-    Surface(shape = MaterialTheme.shapes.extraLarge, modifier = Modifier.fillMaxWidth()) {
-        Column(
-            Modifier
-                .background(Brush.linearGradient(degradado))
-                .padding(20.dp),
-        ) {
+    val (color, fondo) = com.stockpyme.app.ui.comun.colores(estado)
+    val tope = maxOf(p.stockMinimo * 3, p.stockActual, 1)
+    com.stockpyme.app.ui.comun.Tarjeta(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    p.categoriaNombre.uppercase(),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = Color.White.copy(alpha = 0.85f),
+                    "Stock actual",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.weight(1f),
                 )
-                Text(
-                    estado.texto,
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    modifier = Modifier
-                        .background(Color.White.copy(alpha = 0.2f), MaterialTheme.shapes.small)
-                        .padding(horizontal = 10.dp, vertical = 4.dp),
-                )
+                com.stockpyme.app.ui.comun.Pildora(estado.texto, color, fondo)
             }
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(4.dp))
             Row(verticalAlignment = Alignment.Bottom) {
-                Text(
-                    "${p.stockActual}",
-                    style = MaterialTheme.typography.displayMedium,
-                    color = Color.White,
-                )
+                Text("${p.stockActual}", style = MaterialTheme.typography.displayMedium)
                 Text(
                     if (p.stockActual == 1) " unidad" else " unidades",
                     style = MaterialTheme.typography.titleMedium,
-                    color = Color.White.copy(alpha = 0.9f),
-                    modifier = Modifier.padding(bottom = 8.dp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 9.dp),
                 )
             }
+            Spacer(Modifier.height(12.dp))
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .background(MaterialTheme.colorScheme.surfaceContainerHighest, MaterialTheme.shapes.small),
+            ) {
+                Box(
+                    Modifier
+                        .fillMaxWidth((p.stockActual.toFloat() / tope).coerceIn(0.02f, 1f))
+                        .height(8.dp)
+                        .background(color, MaterialTheme.shapes.small),
+                )
+            }
+            Spacer(Modifier.height(8.dp))
             Text(
-                "Aviso cuando queden ${p.stockMinimo} o menos",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.White.copy(alpha = 0.85f),
+                "Mínimo ${p.stockMinimo} · ${p.categoriaNombre}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -281,7 +278,7 @@ private fun Datos(p: Producto) {
     Surface(
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surfaceContainerLow,
-        shadowElevation = 0.5.dp,
+        border = bordeTarjeta(),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(Modifier.padding(vertical = 8.dp)) {
@@ -543,7 +540,7 @@ private fun VentasRecientes(movimientos: List<com.stockpyme.app.datos.Movimiento
     androidx.compose.material3.Surface(
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surfaceContainerLow,
-        shadowElevation = 0.5.dp,
+        border = bordeTarjeta(),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(Modifier.padding(16.dp)) {

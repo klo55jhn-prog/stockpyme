@@ -1,5 +1,6 @@
 package com.stockpyme.app.ui.reposicion
 
+import com.stockpyme.app.ui.comun.bordeTarjeta
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -182,7 +183,7 @@ private fun FilaLinea(vm: ReposicionViewModel, l: LineaReposicion) {
     Surface(
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surfaceContainerLow,
-        shadowElevation = 0.5.dp,
+        border = bordeTarjeta(),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {

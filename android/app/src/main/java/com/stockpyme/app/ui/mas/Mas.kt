@@ -1,5 +1,7 @@
 package com.stockpyme.app.ui.mas
 
+import com.stockpyme.app.ui.comun.Chip
+import com.stockpyme.app.ui.comun.bordeTarjeta
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -113,8 +115,9 @@ fun PantallaMas(usuario: Usuario, onIr: (String) -> Unit) {
         ) {
             // Perfil
             Surface(
-                shape = MaterialTheme.shapes.extraLarge,
-                color = MaterialTheme.colorScheme.primaryContainer,
+                shape = MaterialTheme.shapes.large,
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                border = bordeTarjeta(),
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Row(
@@ -188,7 +191,7 @@ fun PantallaMas(usuario: Usuario, onIr: (String) -> Unit) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Outlined.DarkMode, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 listOf(Sesion.TEMA_SISTEMA to "Sistema", Sesion.TEMA_CLARO to "Claro", Sesion.TEMA_OSCURO to "Oscuro").forEach { (modo, texto) ->
-                    FilterChip(selected = tema == modo, onClick = { datosSesion.cambiarTema(modo) }, label = { Text(texto) })
+                    Chip(selected = tema == modo, onClick = { datosSesion.cambiarTema(modo) }, label = { Text(texto) })
                 }
             }
 
@@ -267,7 +270,7 @@ private fun Grupo(opciones: List<Opcion>) {
     Surface(
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surfaceContainerLow,
-        shadowElevation = 0.5.dp,
+        border = bordeTarjeta(),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column {

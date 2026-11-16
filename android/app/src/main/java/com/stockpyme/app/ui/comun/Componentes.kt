@@ -1,5 +1,10 @@
 package com.stockpyme.app.ui.comun
 
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.foundation.BorderStroke
 import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -123,8 +128,8 @@ fun colorPara(texto: String): Color = coloresAvatar[abs(texto.hashCode()) % colo
 // ---------- Estructura de pantalla ----------
 
 /**
- * Estructura común de cada pantalla: barra superior, mensajes y botón flotante.
- * Las pestañas principales usan una barra con título grande que se encoge al hacer scroll.
+ * Estructura común de cada pantalla. Las pestañas principales llevan un título grande a la
+ * izquierda (con [subtitulo] opcional); las pantallas interiores, un título centrado y botón de volver.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -133,27 +138,17 @@ fun Pantalla(
     onAtras: (() -> Unit)? = null,
     snackbar: SnackbarHostState = remember { SnackbarHostState() },
     grande: Boolean = onAtras == null,
+    subtitulo: String? = null,
     acciones: @Composable RowScope.() -> Unit = {},
     botonFlotante: @Composable () -> Unit = {},
     barraInferior: @Composable () -> Unit = {},
     contenido: @Composable (PaddingValues) -> Unit,
 ) {
-    val scroll = if (grande) {
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    } else {
-        TopAppBarDefaults.pinnedScrollBehavior()
-    }
+    val scroll = TopAppBarDefaults.pinnedScrollBehavior()
     val colores = TopAppBarDefaults.topAppBarColors(
         containerColor = MaterialTheme.colorScheme.background,
-        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+        scrolledContainerColor = MaterialTheme.colorScheme.background,
     )
-    val atras: @Composable () -> Unit = {
-        if (onAtras != null) {
-            IconButton(onClick = onAtras) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
-            }
-        }
-    }
     Scaffold(
         modifier = Modifier.nestedScroll(scroll.nestedScrollConnection),
         // Los márgenes del sistema (barra de estado y de navegación) ya los gestiona AppPrincipal
@@ -161,18 +156,43 @@ fun Pantalla(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             if (grande) {
-                LargeTopAppBar(
-                    title = { Text(titulo, maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.Bold) },
-                    navigationIcon = atras,
-                    actions = acciones,
+                TopAppBar(
+                    title = {
+                        Column(Modifier.padding(start = 4.dp)) {
+                            Text(
+                                titulo,
+                                style = MaterialTheme.typography.headlineMedium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            if (subtitulo != null) {
+                                Text(
+                                    subtitulo,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                )
+                            }
+                        }
+                    },
+                    actions = {
+                        acciones()
+                        Spacer(Modifier.size(8.dp))
+                    },
                     colors = colores,
                     scrollBehavior = scroll,
+                    expandedHeight = if (subtitulo != null) 84.dp else 68.dp,
                 )
             } else {
-                TopAppBar(
-                    title = { Text(titulo, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                    navigationIcon = atras,
-                    actions = acciones,
+                CenterAlignedTopAppBar(
+                    title = {
+                        Text(titulo, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    },
+                    navigationIcon = { if (onAtras != null) BotonCabecera(Icons.AutoMirrored.Filled.ArrowBack, "Volver", onAtras, Modifier.padding(start = 12.dp)) },
+                    actions = {
+                        acciones()
+                        Spacer(Modifier.size(8.dp))
+                    },
                     colors = colores,
                     scrollBehavior = scroll,
                 )
@@ -182,6 +202,95 @@ fun Pantalla(
         floatingActionButton = botonFlotante,
         bottomBar = barraInferior,
         content = contenido,
+    )
+}
+
+/** Botón cuadrado redondeado con borde para las cabeceras (volver, escanear, avisos...). */
+@Composable
+fun BotonCabecera(
+    icono: ImageVector,
+    descripcion: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    aviso: Int = 0,
+) {
+    Box(modifier) {
+        Surface(
+            onClick = onClick,
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            border = bordeTarjeta(),
+            modifier = Modifier.size(42.dp),
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(icono, contentDescription = descripcion, modifier = Modifier.size(22.dp))
+            }
+        }
+        if (aviso > 0) {
+            Box(
+                Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 0.dp)
+                    .size(18.dp)
+                    .background(MaterialTheme.colorScheme.error, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    if (aviso > 9) "9+" else "$aviso",
+                    color = MaterialTheme.colorScheme.onError,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+        }
+    }
+}
+
+/** Borde fino de las tarjetas: el nuevo diseño no usa sombras. */
+@Composable
+fun bordeTarjeta(): BorderStroke = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+
+/** Tarjeta blanca con borde fino. */
+@Composable
+fun Tarjeta(modifier: Modifier = Modifier, onClick: (() -> Unit)? = null, contenido: @Composable () -> Unit) {
+    if (onClick != null) {
+        Surface(
+            onClick = onClick,
+            modifier = modifier,
+            shape = MaterialTheme.shapes.large,
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            border = bordeTarjeta(),
+            content = contenido,
+        )
+    } else {
+        Surface(
+            modifier = modifier,
+            shape = MaterialTheme.shapes.large,
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            border = bordeTarjeta(),
+            content = contenido,
+        )
+    }
+}
+
+/** Chip de filtro: en tinta cuando está marcado. */
+@Composable
+fun Chip(selected: Boolean, onClick: () -> Unit, label: @Composable () -> Unit) {
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        label = label,
+        shape = CircleShape,
+        colors = FilterChipDefaults.filterChipColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            selectedContainerColor = MaterialTheme.colorScheme.primary,
+            selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+        ),
+        border = FilterChipDefaults.filterChipBorder(
+            enabled = true,
+            selected = selected,
+            borderColor = MaterialTheme.colorScheme.outlineVariant,
+        ),
     )
 }
 
@@ -250,7 +359,7 @@ fun Logo(tamano: Dp, modifier: Modifier = Modifier) {
 fun Avatar(texto: String, modifier: Modifier = Modifier, tamano: Dp = 44.dp, clave: String = texto) {
     val color = colorPara(clave)
     Box(
-        modifier = modifier.size(tamano).background(color.copy(alpha = 0.14f), CircleShape),
+        modifier = modifier.size(tamano).background(color.copy(alpha = 0.12f), RoundedCornerShape(tamano * 0.3f)),
         contentAlignment = Alignment.Center,
     ) {
         Text(
@@ -266,7 +375,7 @@ fun Avatar(texto: String, modifier: Modifier = Modifier, tamano: Dp = 44.dp, cla
 @Composable
 fun IconoRedondo(icono: ImageVector, color: Color, modifier: Modifier = Modifier, tamano: Dp = 40.dp) {
     Box(
-        modifier = modifier.size(tamano).background(color.copy(alpha = 0.14f), CircleShape),
+        modifier = modifier.size(tamano).background(color.copy(alpha = 0.12f), RoundedCornerShape(tamano * 0.3f)),
         contentAlignment = Alignment.Center,
     ) {
         Icon(icono, contentDescription = null, tint = color, modifier = Modifier.size(tamano * 0.5f))
@@ -277,7 +386,7 @@ fun IconoRedondo(icono: ImageVector, color: Color, modifier: Modifier = Modifier
 @Composable
 fun Pildora(texto: String, color: Color, fondo: Color, modifier: Modifier = Modifier, punto: Boolean = true) {
     Row(
-        modifier = modifier.background(fondo, CircleShape).padding(horizontal = 10.dp, vertical = 4.dp),
+        modifier = modifier.background(fondo, RoundedCornerShape(8.dp)).padding(horizontal = 9.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
@@ -301,8 +410,7 @@ fun FilaTarjeta(
         modifier = modifier.fillMaxWidth(),
         shape = forma,
         color = MaterialTheme.colorScheme.surfaceContainerLow,
-        tonalElevation = 0.dp,
-        shadowElevation = 0.5.dp,
+        border = bordeTarjeta(),
     ) {
         ListItem(
             modifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier,
@@ -319,15 +427,14 @@ fun FilaTarjeta(
 @Composable
 fun TituloSeccion(texto: String, modifier: Modifier = Modifier) {
     Text(
-        texto.uppercase(),
-        style = MaterialTheme.typography.labelMedium,
-        fontWeight = FontWeight.Bold,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = modifier.padding(top = 12.dp, bottom = 4.dp, start = 4.dp),
+        texto,
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.onSurface,
+        modifier = modifier.padding(top = 16.dp, bottom = 4.dp, start = 2.dp),
     )
 }
 
-/** Tarjeta de un indicador (KPI): icono, valor grande y descripción. */
+/** Tarjeta de un indicador (KPI): descripción arriba, valor grande e icono pequeño. */
 @Composable
 fun TarjetaDato(
     titulo: String,
@@ -336,17 +443,21 @@ fun TarjetaDato(
     color: Color,
     modifier: Modifier = Modifier,
 ) {
-    Surface(
-        modifier = modifier,
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        shadowElevation = 0.5.dp,
-    ) {
+    Tarjeta(modifier) {
         Column(Modifier.padding(16.dp)) {
-            IconoRedondo(icono, color, tamano = 36.dp)
-            Spacer(Modifier.size(12.dp))
-            Text(valor, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, maxLines = 1)
-            Text(titulo, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    titulo,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Icon(icono, contentDescription = null, tint = color, modifier = Modifier.size(18.dp))
+            }
+            Spacer(Modifier.size(8.dp))
+            Text(valor, style = MaterialTheme.typography.titleLarge, maxLines = 1)
         }
     }
 }
