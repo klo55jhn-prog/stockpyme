@@ -85,7 +85,7 @@
     .boton {
       display: inline-flex; align-items: center; justify-content: center; gap: 8px;
       padding: 13px 22px; border-radius: 14px; font-weight: 600; font-size: .95rem;
-      text-decoration: none; border: 0; cursor: pointer; transition: transform .15s, box-shadow .15s;
+      text-decoration: none; border: 0; cursor: pointer; transition: transform .15s, box-shadow .15s; white-space: nowrap;
     }
     .boton:hover { transform: translateY(-1px); }
     .boton-primario { background: var(--boton); color: var(--boton-texto); }
@@ -286,6 +286,8 @@
       section { padding-block: 64px; }
     }
     @media (max-width: 480px) {
+      nav.menu { gap: 10px; }
+      nav.menu .boton { padding: 10px 14px; font-size: .85rem; }
       .rejilla-4 { grid-template-columns: 1fr; }
       .roles th, .roles td { padding: 10px 8px; font-size: .88rem; }
       .roles td:not(:first-child), .roles th:not(:first-child) { width: 80px; }
