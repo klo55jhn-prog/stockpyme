@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>StockPyme · Inventario para pequeños comercios</title>
-  <meta name="description" content="StockPyme es la app de inventario para tiendas y pequeños comercios: controla tu stock desde el móvil, escanea códigos de barras y recibe avisos antes de quedarte sin producto.">
+  <title>StockPyme 2.0 · Inventario y ventas para pequeños comercios</title>
+  <meta name="description" content="StockPyme 2.0: inventario, ventas con carrito, panel con gráficas, reposición por proveedor y exportación a Excel para tiendas y pequeños comercios. Desde el móvil.">
   <link rel="icon" href="img/logo.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -209,6 +209,50 @@
     footer { padding-block: 40px; border-top: 1px solid var(--borde); color: var(--texto-suave); font-size: .9rem; }
     footer .contenedor { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
 
+
+    /* ---------- V2 ---------- */
+    .tema-btn { background: none; border: 1.5px solid var(--borde); color: var(--texto); width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 1.1rem; display: grid; place-items: center; }
+    .tema-btn:hover { border-color: var(--marca); }
+    .version { display: inline-block; background: #FBBF24; color: #422006; font-weight: 800; font-size: .72rem; padding: 3px 9px; border-radius: 999px; margin-left: 4px; vertical-align: middle; }
+    .rejilla-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    .nuevo { position: absolute; top: 16px; right: 16px; background: #FBBF24; color: #422006; font-size: .7rem; font-weight: 800; padding: 3px 9px; border-radius: 999px; }
+    .tarjeta { position: relative; }
+    .tarjeta.mini { padding: 22px; }
+    .tarjeta.mini h3 { margin: 14px 0 6px; font-size: 1.05rem; }
+    .tarjeta.mini p { font-size: .94rem; }
+
+    .visor { display: grid; grid-template-columns: 300px 1fr; gap: 56px; align-items: center; }
+    .visor .movil { width: 280px; margin-inline: auto; }
+    .visor .movil img { transition: opacity .25s; }
+    .pestanas { display: grid; gap: 10px; }
+    .pestanas button {
+      text-align: left; font: inherit; background: var(--tarjeta); color: var(--texto);
+      border: 1.5px solid var(--borde); border-radius: 16px; padding: 14px 18px; cursor: pointer;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .pestanas button strong { display: block; }
+    .pestanas button span { color: var(--texto-suave); font-size: .92rem; }
+    .pestanas button[aria-selected="true"] { border-color: var(--marca); box-shadow: var(--sombra); }
+
+    .roles { width: 100%; border-collapse: collapse; background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 20px; overflow: hidden; box-shadow: var(--sombra); }
+    .roles th, .roles td { padding: 14px 18px; text-align: left; border-bottom: 1px solid var(--borde); }
+    .roles th { background: var(--fondo-alt); font-size: .85rem; text-transform: uppercase; letter-spacing: .05em; color: var(--texto-suave); }
+    .roles td:not(:first-child), .roles th:not(:first-child) { text-align: center; width: 140px; }
+    .roles tr:last-child td { border-bottom: 0; }
+    .si { color: #15803D; font-weight: 800; }
+    .no { color: var(--texto-suave); opacity: .6; }
+
+    .tecnica { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .tecnica ul { margin: 14px 0 0; padding-left: 20px; color: var(--texto-suave); display: grid; gap: 8px; }
+    code { background: var(--fondo-alt); border: 1px solid var(--borde); border-radius: 6px; padding: 1px 6px; font-size: .88em; }
+
+    .ruta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .ruta .tarjeta h3 { margin-top: 0; }
+    .ruta .estado { font-size: .78rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+    .ruta .hecho .estado { color: #15803D; }
+    .ruta .pronto .estado { color: #B45309; }
+    .ruta .futuro .estado { color: var(--texto-suave); }
+
     /* ---------- Móvil ---------- */
     @media (max-width: 900px) {
       nav.menu a:not(.boton) { display: none; }
@@ -219,10 +263,16 @@
       .rejilla, .pasos, .precios { grid-template-columns: 1fr; }
       .problema { grid-template-columns: 1fr; }
       .galeria { grid-template-columns: repeat(2, 1fr); }
+      .rejilla-4 { grid-template-columns: 1fr 1fr; }
+      .visor { grid-template-columns: 1fr; gap: 28px; }
+      .tecnica, .ruta { grid-template-columns: 1fr; }
       .plan.destacado { transform: none; }
       section { padding-block: 64px; }
     }
     @media (max-width: 480px) {
+      .rejilla-4 { grid-template-columns: 1fr; }
+      .roles th, .roles td { padding: 10px 8px; font-size: .88rem; }
+      .roles td:not(:first-child), .roles th:not(:first-child) { width: 80px; }
       .portada .moviles { height: 360px; }
       .portada .moviles .movil { width: 170px; border-radius: 28px; padding: 7px; }
       .portada .moviles .movil img { border-radius: 22px; }
@@ -234,12 +284,15 @@
 
 <header class="barra">
   <div class="contenedor">
-    <a href="#" class="marca"><img src="img/logo.svg" alt="">StockPyme</a>
+    <a href="#" class="marca"><img src="img/logo.svg" alt="">StockPyme<span class="version">2.0</span></a>
     <nav class="menu">
+      <a href="#novedades">Novedades</a>
       <a href="#funciones">Funciones</a>
       <a href="#capturas">La app</a>
+      <a href="#seguridad">Seguridad</a>
       <a href="#precios">Precios</a>
       <a href="#preguntas">Preguntas</a>
+      <button class="tema-btn" id="tema" aria-label="Cambiar entre tema claro y oscuro" title="Tema claro / oscuro">◐</button>
       <a href="#empezar" class="boton boton-primario">Pruébala gratis</a>
     </nav>
   </div>
@@ -250,22 +303,59 @@
   <section class="portada" style="padding:0">
     <div class="contenedor">
       <div>
-        <span class="etiqueta"><span></span>Para tiendas, ferreterías, bazares y kioscos</span>
-        <h1>Tu inventario, <em>siempre al día</em> y en el bolsillo</h1>
-        <p class="entrada">StockPyme registra cada entrada y salida de mercancía desde el móvil, te avisa antes de que algo se agote y te dice cuánto vale lo que tienes en la tienda.</p>
+        <span class="etiqueta"><span></span>Versión 2.0 · ya con ventas, gráficas y reposición</span>
+        <h1>Tu inventario <em>y tus ventas</em>, siempre al día en el bolsillo</h1>
+        <p class="entrada">Cobra con un carrito, mira cuánto has vendido hoy, recibe la lista de la compra por proveedor y exporta todo a Excel. Para tiendas, ferreterías, bazares y kioscos.</p>
         <div class="acciones">
           <a href="#empezar" class="boton boton-blanco">Empezar gratis</a>
           <a href="#capturas" class="boton boton-borde">Ver la app</a>
         </div>
         <div class="confianza">
-          <div><strong>2 toques</strong>para registrar una venta</div>
+          <div><strong>1 carrito</strong>una venta, un solo movimiento</div>
           <div><strong>0</strong>stock negativo, nunca</div>
-          <div><strong>100 %</strong>de cambios con historial</div>
+          <div><strong>CSV</strong>listo para tu gestor</div>
         </div>
       </div>
       <div class="moviles" aria-hidden="true">
-        <div class="movil uno"><img src="img/productos.png" alt=""></div>
-        <div class="movil dos"><img src="img/detalle.png" alt=""></div>
+        <div class="movil uno"><img src="img/v2-panel.png" alt=""></div>
+        <div class="movil dos"><img src="img/v2-venta.png" alt=""></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Novedades V2 -->
+  <section id="novedades">
+    <div class="contenedor">
+      <div class="encabezado">
+        <div class="antetitulo">Novedades de la versión 2.0</div>
+        <h2>Más que un inventario: el día a día de la tienda</h2>
+        <p>La primera versión controlaba el stock. La segunda te ayuda a vender, a reponer y a entender tu negocio.</p>
+      </div>
+      <div class="rejilla-4">
+        <div class="tarjeta mini"><span class="nuevo">Nuevo</span>
+          <div class="icono" style="--c:#0F766E"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h2l2.4 12.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 7H6"/><circle cx="10" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></svg></div>
+          <h3>Modo venta con carrito</h3><p>Busca o escanea, ajusta cantidades y cobra. Todo el carrito se descuenta a la vez: o entra entero o no entra.</p></div>
+        <div class="tarjeta mini"><span class="nuevo">Nuevo</span>
+          <div class="icono" style="--c:#2563EB"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg></div>
+          <h3>Panel de inicio</h3><p>Ventas de hoy y de ayer, gráfica de 7, 14 o 30 días, alertas y actividad reciente nada más abrir la app.</p></div>
+        <div class="tarjeta mini"><span class="nuevo">Nuevo</span>
+          <div class="icono" style="--c:#B45309"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2"/><circle cx="18.5" cy="18.5" r="2"/></svg></div>
+          <h3>Reposición por proveedor</h3><p>La lista de la compra ya agrupada por proveedor, con cantidades sugeridas, coste estimado y pedido listo para enviar.</p></div>
+        <div class="tarjeta mini"><span class="nuevo">Nuevo</span>
+          <div class="icono" style="--c:#15803D"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h8"/></svg></div>
+          <h3>Exportar a Excel (CSV)</h3><p>Inventario y movimientos de los últimos 30 días en un archivo que abre Excel, con acentos y comas bien puestos.</p></div>
+        <div class="tarjeta mini"><span class="nuevo">Nuevo</span>
+          <div class="icono" style="--c:#7C3AED"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></div>
+          <h3>Tema claro y oscuro</h3><p>Sigue el del móvil o elige el tuyo. Útil para el almacén con poca luz o para ahorrar batería.</p></div>
+        <div class="tarjeta mini"><span class="nuevo">Nuevo</span>
+          <div class="icono" style="--c:#0891B2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9"/><path d="M3 3v5h5M12 7v5l4 2"/></svg></div>
+          <h3>Gráfica por producto</h3><p>En la ficha de cada producto, las unidades vendidas de las dos últimas semanas para ver qué se mueve.</p></div>
+        <div class="tarjeta mini"><span class="nuevo">Nuevo</span>
+          <div class="icono" style="--c:#DB2777"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.5V19l4 2v-8.5z"/></svg></div>
+          <h3>Filtros y orden</h3><p>Por categoría, stock bajo, nombre, precio o menos stock. Y en Actividad, solo entradas, salidas o ajustes.</p></div>
+        <div class="tarjeta mini"><span class="nuevo">Nuevo</span>
+          <div class="icono" style="--c:#EA580C"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+          <h3>Cambio de contraseña</h3><p>Cada usuario puede cambiar la suya desde la app, comprobando antes la actual.</p></div>
       </div>
     </div>
   </section>
@@ -306,7 +396,7 @@
     <div class="contenedor">
       <div class="encabezado">
         <div class="antetitulo">Funciones</div>
-        <h2>Todo lo que necesita un comercio, nada que sobre</h2>
+        <h2>Y todo lo de siempre, mejor que nunca</h2>
         <p>Diseñada para usarla de pie, detrás del mostrador, con una mano.</p>
       </div>
       <div class="rejilla">
@@ -352,23 +442,72 @@
         <h2>Clara, rápida y pensada para el día a día</h2>
         <p>Colores que se entienden de un vistazo: verde, todo bien; ámbar, toca reponer; rojo, agotado.</p>
       </div>
-      <div class="galeria">
-        <figure>
-          <div class="movil"><img src="img/productos.png" alt="Lista de productos con su stock" loading="lazy"></div>
-          <figcaption>Productos<span>Busca o escanea</span></figcaption>
-        </figure>
-        <figure>
-          <div class="movil"><img src="img/detalle.png" alt="Ficha de un producto con su historial" loading="lazy"></div>
-          <figcaption>Ficha<span>Stock, margen e historial</span></figcaption>
-        </figure>
-        <figure>
-          <div class="movil"><img src="img/alertas.png" alt="Alertas de productos con stock bajo" loading="lazy"></div>
-          <figcaption>Alertas<span>Qué reponer y a quién</span></figcaption>
-        </figure>
-        <figure>
-          <div class="movil"><img src="img/resumen.png" alt="Resumen con el valor del inventario" loading="lazy"></div>
-          <figcaption>Resumen<span>Tu negocio en cifras</span></figcaption>
-        </figure>
+      <div class="visor">
+        <div class="movil"><img id="visor-img" src="img/v2-panel.png" alt="Panel de inicio con las ventas de hoy y una gráfica"></div>
+        <div class="pestanas" role="tablist" aria-label="Pantallas de la app">
+          <button role="tab" aria-selected="true" data-img="img/v2-panel.png" data-alt="Panel de inicio con las ventas de hoy y una gráfica"><strong>Inicio</strong><span>Ventas de hoy, gráfica y accesos rápidos</span></button>
+          <button role="tab" aria-selected="false" data-img="img/v2-venta.png" data-alt="Pantalla de nueva venta con tres productos en el carrito"><strong>Nueva venta</strong><span>Carrito con buscador y escáner, y cobro de una vez</span></button>
+          <button role="tab" aria-selected="false" data-img="img/v2-reposicion.png" data-alt="Lista de reposición agrupada por proveedor"><strong>Reposición</strong><span>Qué pedir, a quién y cuánto costará</span></button>
+          <button role="tab" aria-selected="false" data-img="img/v2-productos.png" data-alt="Lista de productos con filtros por categoría y orden"><strong>Productos</strong><span>Busca, filtra por categoría y ordena</span></button>
+          <button role="tab" aria-selected="false" data-img="img/v2-detalle.png" data-alt="Ficha de producto con gráfica de unidades vendidas"><strong>Ficha de producto</strong><span>Gráfica de ventas e historial completo</span></button>
+          <button role="tab" aria-selected="false" data-img="img/v2-mas.png" data-alt="Menú Más con accesos a venta, reposición y gestión"><strong>Más</strong><span>Gestión del comercio, exportar y apariencia</span></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Roles -->
+  <section class="alt">
+    <div class="contenedor">
+      <div class="encabezado">
+        <div class="antetitulo">Permisos</div>
+        <h2>Cada persona, lo que le toca</h2>
+        <p>Tu equipo vende y repone sin poder tocar precios, cuentas ni recuentos.</p>
+      </div>
+      <div style="overflow-x:auto">
+      <table class="roles">
+        <thead><tr><th>Acción</th><th>Empleado</th><th>Propietario</th></tr></thead>
+        <tbody>
+          <tr><td>Consultar productos, alertas y reposición</td><td class="si">✓</td><td class="si">✓</td></tr>
+          <tr><td>Cobrar ventas y registrar entradas / salidas</td><td class="si">✓</td><td class="si">✓</td></tr>
+          <tr><td>Ver el panel (movimientos de hoy)</td><td class="si">✓</td><td class="si">✓</td></tr>
+          <tr><td>Ver importes de ventas y gráficas</td><td class="no">—</td><td class="si">✓</td></tr>
+          <tr><td>Ajustes de stock por recuento</td><td class="no">—</td><td class="si">✓</td></tr>
+          <tr><td>Crear y editar productos, categorías y proveedores</td><td class="no">—</td><td class="si">✓</td></tr>
+          <tr><td>Gestionar usuarios y exportar a CSV</td><td class="no">—</td><td class="si">✓</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Seguridad -->
+  <section id="seguridad">
+    <div class="contenedor">
+      <div class="encabezado">
+        <div class="antetitulo">Fiabilidad y seguridad</div>
+        <h2>Los números tienen que cuadrar</h2>
+        <p>Detrás de la app hay un servidor propio con base de datos. Estas son las reglas que no se rompen.</p>
+      </div>
+      <div class="tecnica">
+        <div class="tarjeta">
+          <h3 style="margin-top:0">Stock</h3>
+          <ul>
+            <li>El stock <strong>solo cambia con movimientos</strong>: nadie puede “editar el número”.</li>
+            <li>Una venta con varios productos se procesa en <strong>una sola transacción</strong>: si uno no tiene stock, no se descuenta ninguno.</li>
+            <li>Dos ventas simultáneas del mismo producto se serializan con bloqueo de fila; el stock <strong>nunca es negativo</strong>.</li>
+            <li>Cada movimiento guarda el <strong>precio del momento</strong>, así los informes antiguos no cambian si subes los precios.</li>
+          </ul>
+        </div>
+        <div class="tarjeta">
+          <h3 style="margin-top:0">Cuentas y datos</h3>
+          <ul>
+            <li>Sesión con <strong>token JWT</strong>; contraseñas guardadas con hash BCrypt, nunca en claro.</li>
+            <li>Los permisos se comprueban en el <strong>servidor</strong>, no solo en la app.</li>
+            <li>Los CSV neutralizan las celdas peligrosas para que Excel no ejecute fórmulas inyectadas.</li>
+            <li>Los datos viven en una base de datos MySQL, no en el móvil: cambias de teléfono y sigues donde lo dejaste.</li>
+          </ul>
+        </div>
       </div>
     </div>
   </section>
@@ -397,6 +536,25 @@
     </div>
   </section>
 
+  <!-- Hoja de ruta -->
+  <section>
+    <div class="contenedor">
+      <div class="encabezado">
+        <div class="antetitulo">Hoja de ruta</div>
+        <h2>Qué hay y qué viene</h2>
+        <p>Es un proyecto en desarrollo: esto es lo que ya funciona y lo que está pensado para después.</p>
+      </div>
+      <div class="ruta">
+        <div class="tarjeta hecho"><div class="estado">Disponible · v2.0</div><h3>Ya en la app</h3>
+          <ul style="margin:0;padding-left:18px;color:var(--texto-suave)"><li>Inventario, movimientos y alertas</li><li>Modo venta, panel y gráficas</li><li>Reposición y exportación CSV</li><li>Roles, tema oscuro, escáner</li></ul></div>
+        <div class="tarjeta pronto"><div class="estado">Siguiente</div><h3>En estudio</h3>
+          <ul style="margin:0;padding-left:18px;color:var(--texto-suave)"><li>Fotos de producto</li><li>Avisos en el móvil de stock bajo</li><li>Informes mensuales en PDF</li><li>Trabajar sin conexión</li></ul></div>
+        <div class="tarjeta futuro"><div class="estado">Más adelante</div><h3>Ideas</h3>
+          <ul style="margin:0;padding-left:18px;color:var(--texto-suave)"><li>Varias tiendas en una cuenta</li><li>Pedidos directos a proveedores</li><li>Versión web de gestión</li><li>Sincronización con la caja</li></ul></div>
+      </div>
+    </div>
+  </section>
+
   <!-- Precios -->
   <section id="precios">
     <div class="contenedor">
@@ -412,7 +570,7 @@
           <ul>
             <li>Hasta 50 productos</li>
             <li>1 usuario (propietario)</li>
-            <li>Escáner y alertas de stock</li>
+            <li>Escáner, alertas y modo venta</li>
             <li>Historial de 30 días</li>
           </ul>
           <a href="#empezar" class="boton boton-borde">Empezar gratis</a>
@@ -425,7 +583,8 @@
             <li>Productos ilimitados</li>
             <li>Hasta 5 usuarios</li>
             <li>Historial completo</li>
-            <li>Resumen del inventario</li>
+            <li>Panel con gráficas y resumen</li>
+            <li>Reposición y exportación a Excel</li>
             <li>Soporte por email</li>
           </ul>
           <a href="#empezar" class="boton boton-blanco">Probar 30 días gratis</a>
@@ -442,7 +601,7 @@
           <a href="#empezar" class="boton boton-borde">Hablar con nosotros</a>
         </div>
       </div>
-      <p class="nota">Precios sin IVA.</p>
+      <p class="nota">Precios orientativos de ejemplo, sin IVA. StockPyme es un proyecto académico y todavía no se comercializa.</p>
     </div>
   </section>
 
@@ -474,6 +633,18 @@
           <summary>¿Dónde se guardan mis datos?</summary>
           <p>En una base de datos en el servidor, no en el móvil. Si pierdes o cambias de teléfono, entras con tu cuenta y lo tienes todo. Con el plan Varias tiendas puedes instalarlo en tu propio servidor.</p>
         </details>
+        <details>
+          <summary>¿Qué pasa si vendo varios productos y uno se ha agotado?</summary>
+          <p>La venta se rechaza entera con un aviso que dice cuál es el producto. No se descuenta nada a medias: o entra todo el carrito o no entra ninguna línea.</p>
+        </details>
+        <details>
+          <summary>¿Cómo paso mis datos a Excel o a mi gestor?</summary>
+          <p>Desde Más → Exportar. Genera un CSV del inventario o de los movimientos de los últimos 30 días y lo compartes por correo, Drive o WhatsApp.</p>
+        </details>
+        <details>
+          <summary>¿Cómo sabe la app qué cantidad conviene pedir?</summary>
+          <p>Sugiere reponer hasta el doble del mínimo de cada producto. Es solo una sugerencia: puedes cambiar cada cantidad antes de enviar el pedido.</p>
+        </details>
       </div>
     </div>
   </section>
@@ -496,7 +667,7 @@
 
 <footer>
   <div class="contenedor">
-    <a href="#" class="marca" style="font-size:1rem"><img src="img/logo.svg" alt="" style="width:28px;height:28px">StockPyme</a>
+    <a href="#" class="marca" style="font-size:1rem"><img src="img/logo.svg" alt="" style="width:28px;height:28px">StockPyme 2.0</a>
     <span>Proyecto de fin de grado · Desarrollo de Aplicaciones Multiplataforma</span>
   </div>
 </footer>
@@ -508,6 +679,30 @@
     document.getElementById('gracias').textContent = '¡Gracias! Te escribiremos muy pronto.';
     this.reset();
   });
+
+  // Visor de pantallas
+  (function () {
+    var img = document.getElementById('visor-img');
+    document.querySelectorAll('.pestanas button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        document.querySelectorAll('.pestanas button').forEach(function (o) { o.setAttribute('aria-selected', 'false'); });
+        b.setAttribute('aria-selected', 'true');
+        img.style.opacity = 0;
+        setTimeout(function () { img.src = b.dataset.img; img.alt = b.dataset.alt; img.style.opacity = 1; }, 150);
+      });
+    });
+  })();
+
+  // Tema claro / oscuro
+  (function () {
+    var raiz = document.documentElement;
+    try { var g = localStorage.getItem('tema'); if (g) raiz.dataset.theme = g; } catch (e) {}
+    document.getElementById('tema').addEventListener('click', function () {
+      var oscuro = raiz.dataset.theme ? raiz.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+      raiz.dataset.theme = oscuro ? 'light' : 'dark';
+      try { localStorage.setItem('tema', raiz.dataset.theme); } catch (e) {}
+    });
+  })();
 </script>
 </body>
 </html>

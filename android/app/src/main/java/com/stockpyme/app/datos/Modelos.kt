@@ -114,5 +114,41 @@ data class Resumen(
     val masMovidos30Dias: List<ProductoMovido>,
 )
 
+// ---------- V2 ----------
+
+data class DiaActividad(val fecha: String, val entradas: Long, val salidas: Long, val ventas: BigDecimal)
+
+/** Actividad de los últimos días para el panel del propietario. */
+data class Actividad(
+    val dias: List<DiaActividad>,
+    val ventasHoy: BigDecimal,
+    val ventasPeriodo: BigDecimal,
+    val unidadesVendidasPeriodo: Long,
+    val movimientosHoy: Long,
+)
+
+/** Una línea de la lista de reposición: qué pedir, cuánto y a quién. */
+data class LineaReposicion(
+    val productoId: Long,
+    val nombre: String,
+    val stockActual: Int,
+    val stockMinimo: Int,
+    val sugerido: Int,
+    val precioCompra: BigDecimal,
+    val coste: BigDecimal,
+    val proveedorId: Long?,
+    val proveedorNombre: String?,
+    val proveedorTelefono: String?,
+    val proveedorEmail: String?,
+)
+
+data class CambioPasswordRequest(val actual: String, val nueva: String)
+
+data class LineaVentaRequest(val productoId: Long, val cantidad: Int)
+
+data class VentaRequest(val lineas: List<LineaVentaRequest>)
+
+data class VentaRespuesta(val unidades: Int, val total: BigDecimal, val productos: List<Producto>)
+
 /** Formato de los errores del backend: {"estado": 409, "mensaje": "..."} */
 data class ErrorApi(val estado: Int, val mensaje: String?)

@@ -23,6 +23,15 @@ class Sesion(context: Context) {
 
     val token: String? get() = prefs.getString(CLAVE_TOKEN, null)
 
+    /** Apariencia elegida por el usuario: "sistema", "claro" u "oscuro". Se conserva al cerrar sesión. */
+    private val _tema = MutableStateFlow(prefs.getString(CLAVE_TEMA, null) ?: TEMA_SISTEMA)
+    val tema: StateFlow<String> = _tema.asStateFlow()
+
+    fun cambiarTema(modo: String) {
+        prefs.edit { putString(CLAVE_TEMA, modo) }
+        _tema.value = modo
+    }
+
     private val _usuario = MutableStateFlow(leerUsuario())
     val usuario: StateFlow<Usuario?> = _usuario.asStateFlow()
 
@@ -62,6 +71,11 @@ class Sesion(context: Context) {
         /** 10.0.2.2 es la dirección del PC visto desde el emulador de Android Studio. */
         const val URL_POR_DEFECTO = "http://10.0.2.2:8080/"
 
+        const val TEMA_SISTEMA = "sistema"
+        const val TEMA_CLARO = "claro"
+        const val TEMA_OSCURO = "oscuro"
+
+        private const val CLAVE_TEMA = "tema"
         private const val CLAVE_URL = "url"
         private const val CLAVE_TOKEN = "token"
         private const val CLAVE_USUARIO = "usuario"

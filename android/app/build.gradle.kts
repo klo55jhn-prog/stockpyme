@@ -13,8 +13,8 @@ android {
         applicationId = "com.stockpyme.app"
         minSdk = 26 // RNF-03: Android 8.0 o superior
         targetSdk = 37
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "2.0"
     }
 
     buildTypes {

@@ -189,6 +189,7 @@ fun PantallaDetalle(productoId: Long, usuario: Usuario, onAtras: () -> Unit, onE
                         }
                     }
                     item { Datos(producto) }
+                    item { VentasRecientes(vm.movimientos) }
                     item { TituloSeccion("Historial de movimientos") }
                     if (vm.movimientos.isEmpty()) {
                         item {
@@ -522,4 +523,38 @@ fun FilaMovimiento(m: Movimiento, mostrarProducto: Boolean, onClick: (() -> Unit
             )
         },
     )
+}
+
+
+/** Unidades vendidas (salidas sin merma) en los últimos 14 días, calculadas con el historial. */
+@Composable
+private fun VentasRecientes(movimientos: List<com.stockpyme.app.datos.Movimiento>) {
+    val hoy = java.time.LocalDate.now()
+    val zona = java.time.ZoneId.systemDefault()
+    val dias = (13 downTo 0).map { hoy.minusDays(it.toLong()) }
+    val porDia = HashMap<java.time.LocalDate, Int>()
+    movimientos.filter { it.tipo == "SALIDA" && (it.motivo.isNullOrBlank() || it.motivo.equals("Venta", true)) }
+        .forEach {
+            val f = try { java.time.Instant.parse(it.fecha).atZone(zona).toLocalDate() } catch (e: Exception) { null }
+            if (f != null) porDia[f] = (porDia[f] ?: 0) + kotlin.math.abs(it.cantidad)
+        }
+    val valores = dias.map { (porDia[it] ?: 0).toFloat() }
+    if (valores.all { it == 0f }) return
+    androidx.compose.material3.Surface(
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        shadowElevation = 0.5.dp,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Text("Unidades vendidas · 14 días", style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(8.dp))
+            com.stockpyme.app.ui.comun.GraficaBarras(
+                valores = valores,
+                etiquetas = dias.mapIndexed { i, d -> if (i % 4 == 0 || i == dias.lastIndex) "${d.dayOfMonth}" else "" },
+                detalle = { i -> "${dias[i].dayOfMonth}/${dias[i].monthValue} · ${valores[i].toInt()} u." },
+                altura = 100.dp,
+            )
+        }
+    }
 }

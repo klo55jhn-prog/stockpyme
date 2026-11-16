@@ -1,5 +1,6 @@
 package com.stockpyme.app.datos
 
+import okhttp3.ResponseBody
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -88,4 +89,23 @@ interface ApiService {
     // Informes
     @GET("api/informes/resumen")
     suspend fun resumen(): Resumen
+
+    // V2
+    @GET("api/informes/actividad")
+    suspend fun actividad(@Query("dias") dias: Int): Actividad
+
+    @GET("api/informes/inventario.csv")
+    suspend fun inventarioCsv(): ResponseBody
+
+    @GET("api/informes/movimientos.csv")
+    suspend fun movimientosCsv(@Query("dias") dias: Int): ResponseBody
+
+    @GET("api/productos/reposicion")
+    suspend fun reposicion(): List<LineaReposicion>
+
+    @POST("api/ventas")
+    suspend fun registrarVenta(@Body datos: VentaRequest): VentaRespuesta
+
+    @PUT("api/auth/password")
+    suspend fun cambiarPassword(@Body datos: CambioPasswordRequest): Map<String, String>
 }

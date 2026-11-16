@@ -27,6 +27,12 @@ La documentación interactiva (Swagger) está en `http://localhost:8080/swagger-
 | GET, POST | `/usuarios` | Propietario | CU-13 |
 | PUT | `/usuarios/{id}` | Propietario | CU-13. Nadie puede quitarse a sí mismo el rol de propietario |
 | GET | `/informes/resumen` | Propietario | RF-13 Valor del inventario y productos más movidos |
+| GET | `/informes/actividad?dias=7` | Propietario | V2 Ventas por día (1 a 90 días, con los días sin ventas a cero), ventas de hoy y del periodo |
+| GET | `/informes/inventario.csv` | Propietario | RF-15 Inventario en CSV |
+| GET | `/informes/movimientos.csv?dias=30` | Propietario | RF-15 Movimientos de los últimos días en CSV |
+| GET | `/productos/reposicion` | Todos | V2 Productos bajo el mínimo con cantidad sugerida, coste y proveedor |
+| POST | `/ventas` | Todos | V2 Venta con varias líneas en una sola transacción |
+| PUT | `/auth/password` | Todos | V2 Cambiar la contraseña propia |
 
 ## Registrar un movimiento
 
@@ -39,6 +45,25 @@ POST /api/productos/1/movimientos
 - **AJUSTE:** se envía `stockNuevo` (el stock real contado) y un `motivo` obligatorio. El servidor calcula la diferencia con el stock bloqueado, así no hay errores si otra persona cambia el stock a la vez.
 
 La respuesta es el producto con el stock ya actualizado.
+
+## Ventas (V2)
+
+```json
+POST /api/ventas
+{ "lineas": [ { "productoId": 1, "cantidad": 2 }, { "productoId": 5, "cantidad": 1 } ] }
+```
+
+- Máximo 100 líneas, cada una entre 1 y 100000 unidades. Las líneas repetidas se suman.
+- Todo ocurre en **una transacción**: si un producto no tiene stock suficiente se rechaza la venta entera (409) y el mensaje empieza por el nombre del producto. Las líneas se procesan siempre por orden de id para evitar bloqueos cruzados entre ventas simultáneas.
+- Cada línea queda como una `SALIDA` con motivo `Venta` y guarda el **precio de venta del momento** (`precio_unitario`). Las entradas guardan el precio de compra; los ajustes, ninguno.
+- Respuesta: `{ unidades, total, productos }`, con los productos ya actualizados.
+
+## Reposición y exportación (V2)
+
+- `GET /productos/reposicion` sugiere pedir `max(mínimo × 2, 1) − stock`. Incluye proveedor y su contacto para poder agrupar el pedido.
+- Los CSV usan `;` como separador, coma decimal y BOM UTF-8 para que Excel los abra bien. Las celdas que empiezan por `=`, `+`, `-`, `@`, tabulador o salto de línea se prefijan con `'` para evitar inyección de fórmulas.
+- Una *venta* para los informes es una salida con motivo vacío o `Venta`; las mermas y roturas no cuentan como ingreso.
+- `PUT /auth/password` con `{ actual, nueva }` (nueva de 8 a 72 caracteres). Si la actual no es correcta devuelve **400**, no 401, porque la app cierra la sesión ante un 401.
 
 ## Errores
 

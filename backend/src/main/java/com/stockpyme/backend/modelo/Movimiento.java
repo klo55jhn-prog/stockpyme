@@ -1,6 +1,7 @@
 package com.stockpyme.backend.modelo;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 import java.time.Instant;
 
 /**
@@ -37,16 +38,26 @@ public class Movimiento {
     @JoinColumn(name = "usuario_id", updatable = false)
     private Usuario usuario;
 
+    /** Precio de venta (SALIDA) o de compra (ENTRADA) en ese momento. Nulo en los movimientos de la V1. */
+    @Column(name = "precio_unitario", updatable = false, precision = 10, scale = 2)
+    private BigDecimal precioUnitario;
+
     protected Movimiento() {
     }
 
     public Movimiento(TipoMovimiento tipo, int cantidad, String motivo, Producto producto, Usuario usuario) {
+        this(tipo, cantidad, motivo, producto, usuario, Instant.now(), null);
+    }
+
+    public Movimiento(TipoMovimiento tipo, int cantidad, String motivo, Producto producto, Usuario usuario,
+                      Instant fecha, BigDecimal precioUnitario) {
         this.tipo = tipo;
         this.cantidad = cantidad;
         this.motivo = motivo;
         this.producto = producto;
         this.usuario = usuario;
-        this.fecha = Instant.now();
+        this.fecha = fecha;
+        this.precioUnitario = precioUnitario;
     }
 
     public Long getId() { return id; }
@@ -56,4 +67,5 @@ public class Movimiento {
     public Instant getFecha() { return fecha; }
     public Producto getProducto() { return producto; }
     public Usuario getUsuario() { return usuario; }
+    public BigDecimal getPrecioUnitario() { return precioUnitario; }
 }

@@ -14,6 +14,15 @@ public interface MovimientoRepository extends JpaRepository<Movimiento, Long> {
 
     List<Movimiento> findAllByOrderByFechaDescIdDesc(Pageable pagina);
 
+    /** Todos los movimientos desde una fecha, con producto y usuario ya cargados (informes y CSV). */
+    @Query("""
+            select m from Movimiento m
+            join fetch m.producto join fetch m.usuario
+            where m.fecha >= :desde
+            order by m.fecha desc, m.id desc
+            """)
+    List<Movimiento> desde(@Param("desde") Instant desde);
+
     /** Productos con más unidades movidas desde una fecha. Cada fila: [id, nombre, unidades]. */
     @Query("""
             select m.producto.id, m.producto.nombre, sum(abs(m.cantidad))

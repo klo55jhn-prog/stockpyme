@@ -1,5 +1,6 @@
 package com.stockpyme.backend.servicio;
 
+import com.stockpyme.backend.dto.CambioPasswordRequest;
 import com.stockpyme.backend.dto.LoginRequest;
 import com.stockpyme.backend.dto.LoginResponse;
 import com.stockpyme.backend.dto.UsuarioDto;
@@ -51,6 +52,24 @@ public class UsuarioService {
     public UsuarioDto yo(UsuarioAutenticado actual) {
         return usuarioRepository.findById(actual.id()).map(UsuarioDto::de)
                 .orElseThrow(() -> ApiException.noEncontrado("El usuario no existe"));
+    }
+
+    /**
+     * V2. Cada usuario cambia su propia contraseña. Los errores son 400 y no 401:
+     * la app cierra la sesión ante un 401, y aquí el usuario sí está autenticado.
+     */
+    @Transactional
+    public void cambiarPassword(UsuarioAutenticado actual, CambioPasswordRequest datos) {
+        Usuario usuario = usuarioRepository.findById(actual.id())
+                .orElseThrow(() -> ApiException.noEncontrado("El usuario no existe"));
+        if (!passwordEncoder.matches(datos.actual(), usuario.getPasswordHash())) {
+            throw ApiException.peticionIncorrecta("La contraseña actual no es correcta");
+        }
+        if (datos.actual().equals(datos.nueva())) {
+            throw ApiException.peticionIncorrecta("La contraseña nueva tiene que ser distinta de la actual");
+        }
+        usuario.setPasswordHash(passwordEncoder.encode(datos.nueva()));
+        usuarioRepository.save(usuario);
     }
 
     @Transactional(readOnly = true)

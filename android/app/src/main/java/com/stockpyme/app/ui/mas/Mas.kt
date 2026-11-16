@@ -19,6 +19,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.outlined.Assessment
+import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.FileDownload
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.PointOfSale
+import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.Inventory2
@@ -29,6 +34,8 @@ import androidx.compose.material.icons.outlined.Savings
 import androidx.compose.material.icons.outlined.Sell
 import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -44,6 +51,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.collectAsState
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import com.stockpyme.app.datos.Sesion
+import com.stockpyme.app.ui.comun.MostrarMensaje
+import com.stockpyme.app.ui.comun.compartirArchivo
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -79,8 +94,15 @@ fun PantallaMas(usuario: Usuario, onIr: (String) -> Unit) {
     val repo = repositorio()
     val datosSesion = sesion()
     var confirmarSalida by remember { mutableStateOf(false) }
+    var cambiarClave by remember { mutableStateOf(false) }
+    val tema by datosSesion.tema.collectAsState()
+    val snackbar = remember { SnackbarHostState() }
+    var mensaje by remember { mutableStateOf<String?>(null) }
+    val alcance = rememberCoroutineScope()
+    val context = LocalContext.current
+    MostrarMensaje(mensaje, snackbar) { mensaje = null }
 
-    Pantalla(titulo = "Más") { margenes ->
+    Pantalla(titulo = "Más", snackbar = snackbar) { margenes ->
         Column(
             Modifier
                 .padding(margenes)
@@ -123,6 +145,14 @@ fun PantallaMas(usuario: Usuario, onIr: (String) -> Unit) {
                 }
             }
 
+            TituloSeccion("Trabajo diario")
+            Grupo(
+                listOf(
+                    Opcion(Icons.Outlined.PointOfSale, "Nueva venta", "Carrito con buscador y escáner") { onIr(Rutas.VENTA) },
+                    Opcion(Icons.Outlined.ShoppingCart, "Reposición", "Lista de la compra por proveedor") { onIr(Rutas.REPOSICION) },
+                ),
+            )
+
             if (usuario.esPropietario) {
                 TituloSeccion("Gestión del comercio")
                 Grupo(
@@ -133,12 +163,40 @@ fun PantallaMas(usuario: Usuario, onIr: (String) -> Unit) {
                         Opcion(Icons.Outlined.People, "Usuarios", "Cuentas de tus empleados") { onIr(Rutas.USUARIOS) },
                     ),
                 )
+                TituloSeccion("Exportar (CSV para Excel)")
+                Grupo(
+                    listOf(
+                        Opcion(Icons.Outlined.FileDownload, "Inventario", "Productos, stock y valor", flecha = false) {
+                            alcance.launch {
+                                repo.inventarioCsv()
+                                    .onSuccess { compartirArchivo(context, it, "inventario.csv") }
+                                    .onFailure { mensaje = it.message }
+                            }
+                        },
+                        Opcion(Icons.Outlined.FileDownload, "Movimientos (30 días)", "Entradas, salidas y ajustes", flecha = false) {
+                            alcance.launch {
+                                repo.movimientosCsv(30)
+                                    .onSuccess { compartirArchivo(context, it, "movimientos-30-dias.csv") }
+                                    .onFailure { mensaje = it.message }
+                            }
+                        },
+                    ),
+                )
+            }
+
+            TituloSeccion("Apariencia")
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Outlined.DarkMode, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                listOf(Sesion.TEMA_SISTEMA to "Sistema", Sesion.TEMA_CLARO to "Claro", Sesion.TEMA_OSCURO to "Oscuro").forEach { (modo, texto) ->
+                    FilterChip(selected = tema == modo, onClick = { datosSesion.cambiarTema(modo) }, label = { Text(texto) })
+                }
             }
 
             TituloSeccion("Cuenta")
             Grupo(
                 listOf(
                     Opcion(Icons.Outlined.Dns, "Servidor", datosSesion.urlServidor, flecha = false, onClick = null),
+                    Opcion(Icons.Outlined.Lock, "Cambiar contraseña", null) { cambiarClave = true },
                     Opcion(
                         Icons.AutoMirrored.Outlined.Logout,
                         "Cerrar sesión",
@@ -155,7 +213,7 @@ fun PantallaMas(usuario: Usuario, onIr: (String) -> Unit) {
             ) {
                 Logo(36.dp)
                 Spacer(Modifier.height(8.dp))
-                Text("StockPyme 1.0", style = MaterialTheme.typography.labelLarge)
+                Text("StockPyme ${versionApp(context)}", style = MaterialTheme.typography.labelLarge)
                 Text(
                     "Inventario para pequeños comercios",
                     style = MaterialTheme.typography.bodySmall,
@@ -164,6 +222,22 @@ fun PantallaMas(usuario: Usuario, onIr: (String) -> Unit) {
                 )
             }
         }
+    }
+
+    if (cambiarClave) {
+        DialogoPassword(
+            onCerrar = { cambiarClave = false },
+            onGuardar = { actual, nueva, alTerminar ->
+                alcance.launch {
+                    repo.cambiarPassword(actual, nueva)
+                        .onSuccess {
+                            cambiarClave = false
+                            mensaje = "Contraseña cambiada"
+                        }
+                        .onFailure { alTerminar(it.message ?: "No se pudo cambiar") }
+                }
+            },
+        )
     }
 
     if (confirmarSalida) {
@@ -325,4 +399,43 @@ fun PantallaResumen(onAtras: () -> Unit, onAbrir: (Long) -> Unit) {
             }
         }
     }
+}
+
+private fun versionApp(context: android.content.Context): String = try {
+    context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "2.0"
+} catch (e: Exception) {
+    "2.0"
+}
+
+@Composable
+private fun DialogoPassword(onCerrar: () -> Unit, onGuardar: (String, String, (String) -> Unit) -> Unit) {
+    var actual by remember { mutableStateOf("") }
+    var nueva by remember { mutableStateOf("") }
+    var repetir by remember { mutableStateOf("") }
+    var error by remember { mutableStateOf<String?>(null) }
+    AlertDialog(
+        onDismissRequest = onCerrar,
+        title = { Text("Cambiar contraseña") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(actual, { actual = it }, label = { Text("Contraseña actual") }, singleLine = true,
+                    visualTransformation = PasswordVisualTransformation())
+                OutlinedTextField(nueva, { nueva = it }, label = { Text("Nueva (mínimo 8 caracteres)") }, singleLine = true,
+                    visualTransformation = PasswordVisualTransformation())
+                OutlinedTextField(repetir, { repetir = it }, label = { Text("Repite la nueva") }, singleLine = true,
+                    visualTransformation = PasswordVisualTransformation())
+                error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                when {
+                    nueva.length < 8 -> error = "La nueva contraseña necesita al menos 8 caracteres"
+                    nueva != repetir -> error = "Las contraseñas nuevas no coinciden"
+                    else -> onGuardar(actual, nueva) { error = it }
+                }
+            }) { Text("Guardar") }
+        },
+        dismissButton = { TextButton(onClick = onCerrar) { Text("Cancelar") } },
+    )
 }

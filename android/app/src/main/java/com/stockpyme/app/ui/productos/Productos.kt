@@ -90,8 +90,22 @@ class ProductosViewModel(private val repo: Repositorio) : ViewModel() {
     var mensaje by mutableStateOf<String?>(null)
 
     /** Lo que se ve en la lista, con el filtro "Stock bajo" aplicado en el móvil. */
+    var categoria by mutableStateOf<String?>(null)
+    var orden by mutableStateOf("nombre")
+
+    val categorias: List<String>
+        get() = productos.map { it.categoriaNombre }.distinct().sorted()
+
     val visibles: List<Producto>
-        get() = if (soloBajos) productos.filter { it.activo && it.bajoMinimo } else productos
+        get() {
+            var lista = if (soloBajos) productos.filter { it.activo && it.bajoMinimo } else productos
+            categoria?.let { c -> lista = lista.filter { it.categoriaNombre == c } }
+            return when (orden) {
+                "stock" -> lista.sortedBy { it.stockActual }
+                "precio" -> lista.sortedByDescending { it.precioVenta }
+                else -> lista.sortedBy { it.nombre.lowercase() }
+            }
+        }
 
     private var busqueda: Job? = null
 
@@ -203,6 +217,31 @@ fun PantallaProductos(usuario: Usuario, onAbrir: (Long) -> Unit, onNuevo: (Strin
                         onClick = { vm.cambiarInactivos(!vm.incluirInactivos) },
                         label = { Text("Desactivados") },
                     )
+                }
+            }
+
+            if (vm.categorias.size > 1) {
+                androidx.compose.foundation.lazy.LazyRow(
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    items(vm.categorias) { c ->
+                        FilterChip(
+                            selected = vm.categoria == c,
+                            onClick = { vm.categoria = if (vm.categoria == c) null else c },
+                            label = { Text(c) },
+                        )
+                    }
+                }
+            }
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("Orden:", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                listOf("nombre" to "Nombre", "stock" to "Menos stock", "precio" to "Precio").forEach { (clave, texto) ->
+                    FilterChip(selected = vm.orden == clave, onClick = { vm.orden = clave }, label = { Text(texto) })
                 }
             }
 

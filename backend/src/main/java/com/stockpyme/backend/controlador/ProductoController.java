@@ -1,5 +1,6 @@
 package com.stockpyme.backend.controlador;
 
+import com.stockpyme.backend.dto.LineaReposicionDto;
 import com.stockpyme.backend.dto.MovimientoDto;
 import com.stockpyme.backend.dto.MovimientoRequest;
 import com.stockpyme.backend.dto.ProductoDto;
@@ -39,6 +40,12 @@ public class ProductoController {
     @GetMapping("/bajo-minimo")
     public List<ProductoDto> bajoMinimo() {
         return productoService.bajoMinimo();
+    }
+
+    /** V2. Lista de reposición: qué pedir, cuánto y a qué proveedor. */
+    @GetMapping("/reposicion")
+    public List<LineaReposicionDto> reposicion() {
+        return productoService.reposicion();
     }
 
     @GetMapping("/{id}")

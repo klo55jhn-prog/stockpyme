@@ -3,6 +3,8 @@ package com.stockpyme.app.datos
 import com.google.gson.Gson
 import java.io.IOException
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 
 /**
@@ -92,4 +94,19 @@ class Repositorio(private val contenedor: Contenedor) {
     suspend fun editarUsuario(id: Long, datos: UsuarioRequest) = llamar { editarUsuario(id, datos) }
 
     suspend fun resumen() = llamar { resumen() }
+
+    // V2
+    suspend fun actividad(dias: Int) = llamar { actividad(dias) }
+    suspend fun reposicion() = llamar { reposicion() }
+    suspend fun registrarVenta(datos: VentaRequest) = llamar { registrarVenta(datos) }
+
+    suspend fun cambiarPassword(actual: String, nueva: String) =
+        llamar { cambiarPassword(CambioPasswordRequest(actual, nueva)) }
+
+    /** Descarga el inventario en CSV. Los bytes se leen fuera del hilo principal. */
+    suspend fun inventarioCsv(): Result<ByteArray> =
+        llamar { withContext(Dispatchers.IO) { inventarioCsv().bytes() } }
+
+    suspend fun movimientosCsv(dias: Int): Result<ByteArray> =
+        llamar { withContext(Dispatchers.IO) { movimientosCsv(dias).bytes() } }
 }

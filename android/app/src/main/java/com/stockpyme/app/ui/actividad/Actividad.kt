@@ -1,6 +1,10 @@
 package com.stockpyme.app.ui.actividad
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Text
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -43,6 +47,12 @@ class ActividadViewModel(private val repo: Repositorio) : ViewModel() {
     var error by mutableStateOf<String?>(null)
         private set
 
+    /** null = todos; si no, ENTRADA, SALIDA o AJUSTE. */
+    var filtro by mutableStateOf<String?>(null)
+
+    val visibles: List<Movimiento>
+        get() = filtro?.let { f -> movimientos.filter { it.tipo == f } } ?: movimientos
+
     fun cargar() {
         viewModelScope.launch {
             cargando = true
@@ -80,21 +90,29 @@ fun PantallaActividad(onAbrir: (Long) -> Unit) {
     LaunchedEffect(Unit) { vm.cargar() }
 
     Pantalla(titulo = "Actividad") { margenes ->
+        Column(Modifier.padding(margenes).fillMaxSize()) {
+        Row(Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf<Pair<String?, String>>(
+                null to "Todo", "ENTRADA" to "Entradas", "SALIDA" to "Salidas", "AJUSTE" to "Ajustes",
+            ).forEach { (tipo, texto) ->
+                FilterChip(selected = vm.filtro == tipo, onClick = { vm.filtro = tipo }, label = { Text(texto) })
+            }
+        }
         PullToRefreshBox(
             isRefreshing = vm.cargando && vm.movimientos.isNotEmpty(),
             onRefresh = vm::cargar,
-            modifier = Modifier.padding(margenes).fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
         ) {
             EstadoLista(
                 cargando = vm.cargando,
                 error = vm.error,
-                vacia = vm.movimientos.isEmpty(),
-                textoVacio = "Todavía no hay movimientos",
+                vacia = vm.visibles.isEmpty(),
+                textoVacio = if (vm.movimientos.isEmpty()) "Todavía no hay movimientos" else "No hay movimientos de este tipo",
                 iconoVacio = Icons.Outlined.History,
                 onReintentar = vm::cargar,
             ) {
                 // Agrupados por día, conservando el orden (más reciente primero)
-                val porDia = vm.movimientos.groupBy { dia(it.fecha) }
+                val porDia = vm.visibles.groupBy { dia(it.fecha) }
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
@@ -108,6 +126,7 @@ fun PantallaActividad(onAbrir: (Long) -> Unit) {
                     }
                 }
             }
+        }
         }
     }
 }

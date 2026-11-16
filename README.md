@@ -13,6 +13,18 @@ Con StockPyme un comercio sabe en todo momento qué tiene, registra cada entrada
 | Base de datos | MySQL 8.4 en Docker, con restricciones `CHECK` para las reglas de stock |
 | Despliegue | Docker Compose (base de datos + API con un solo comando) |
 
+## Novedades de la versión 2.0
+
+- **Modo venta**: carrito con buscador y escáner. Cobrar descuenta todas las líneas en una sola transacción (si una no tiene stock, no se descuenta ninguna).
+- **Panel de inicio**: ventas de hoy y de ayer, gráfica de 7, 14 o 30 días, alertas y actividad reciente. El empleado ve solo el número de movimientos, sin importes.
+- **Reposición**: lista de la compra por proveedor con cantidades sugeridas y editables, coste estimado y pedido listo para compartir.
+- **Exportar a CSV** (inventario y movimientos de 30 días), pensado para abrir en Excel.
+- **Tema claro/oscuro**, cambio de contraseña, filtros por categoría y orden en Productos, filtros por tipo en Actividad y gráfica de ventas en la ficha de cada producto.
+- Cada movimiento guarda el **precio del momento**, así los informes no cambian si luego cambias los precios.
+- Web de presentación rehecha con las novedades, un visor de pantallas, tema oscuro y hoja de ruta.
+
+> **Si actualizas desde la V1:** la API añade sola la columna nueva (`precio_unitario`). Si prefieres empezar con los datos de demostración nuevos (14 días de historial para ver las gráficas), ejecuta `docker compose down -v` y vuelve a levantarlo. Ojo: borra los datos actuales.
+
 ## Qué hace
 
 - Inicio de sesión con dos roles: **propietario** y **empleado**.
@@ -74,7 +86,7 @@ cd backend
 mvn test
 ```
 
-Prueban la lógica de stock: entradas, salidas, stock insuficiente, ajustes y permisos.
+Son 20 pruebas: lógica de stock (entradas, salidas, stock insuficiente, ajustes y permisos), ventas con carrito, informes y exportación CSV.
 
 ## Estructura
 
@@ -88,7 +100,7 @@ backend/        API REST (Spring Boot)
   resources/schema.sql  Esquema de la base de datos con sus CHECK
 android/        App móvil (Kotlin + Compose)
   datos/          Retrofit, sesión y repositorio
-  ui/             Pantallas y ViewModels
+  ui/             Pantallas y ViewModels (panel, venta, reposición, productos, actividad, más)
   res/drawable/   Logo e icono adaptativo de la app
 web/            Página web de presentación
 docs/           Análisis, diseño y contrato de la API
@@ -104,6 +116,6 @@ docker-compose.yml
 
 ## Estado
 
-Versión funcional completa: backend, base de datos y app Android con todos los requisitos de prioridad Alta y Media, salvo las notificaciones push (RF-14) y la exportación a CSV (RF-15), que son de prioridad Baja.
+Versión 2.0: backend, base de datos y app Android con todos los requisitos de prioridad Alta y Media, y la exportación a CSV (RF-15). Queda fuera, por ser de prioridad Baja, las notificaciones push (RF-14).
 
 Para producción faltaría servir la API por HTTPS (RNF-04) y cambiar las contraseñas y el secreto JWT con un archivo `.env`.

@@ -53,6 +53,9 @@ CREATE TABLE IF NOT EXISTS movimiento (
     cantidad    INT          NOT NULL,
     motivo      VARCHAR(255),
     fecha       TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    -- V2: precio de venta (SALIDA) o de compra (ENTRADA) en el momento del movimiento.
+    -- Así los informes no cambian si luego se modifica el precio del producto.
+    precio_unitario DECIMAL(10,2),
     producto_id BIGINT       NOT NULL,
     usuario_id  BIGINT       NOT NULL,
     CONSTRAINT fk_movimiento_producto FOREIGN KEY (producto_id) REFERENCES producto (id),

@@ -11,6 +11,8 @@ import com.stockpyme.backend.repositorio.MovimientoRepository;
 import com.stockpyme.backend.repositorio.ProductoRepository;
 import com.stockpyme.backend.repositorio.UsuarioRepository;
 import com.stockpyme.backend.seguridad.UsuarioAutenticado;
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -61,8 +63,14 @@ public class MovimientoService {
 
         String motivo = limpiar(peticion.motivo());
         producto.setStockActual(stockNuevo);
+        // V2: se guarda el precio de ese momento para que los informes no cambien si luego cambia el precio.
+        BigDecimal precio = switch (peticion.tipo()) {
+            case SALIDA -> producto.getPrecioVenta();
+            case ENTRADA -> producto.getPrecioCompra();
+            default -> null;
+        };
         Movimiento movimiento = new Movimiento(peticion.tipo(), cambio, motivo, producto,
-                usuarioRepository.getReferenceById(usuario.id()));
+                usuarioRepository.getReferenceById(usuario.id()), Instant.now(), precio);
         movimientoRepository.save(movimiento);
         productoRepository.save(producto);
         return ProductoDto.de(producto);

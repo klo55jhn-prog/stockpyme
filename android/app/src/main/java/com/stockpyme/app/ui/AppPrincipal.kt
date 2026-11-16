@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.outlined.AccountCircle
@@ -46,9 +48,15 @@ import com.stockpyme.app.ui.productos.PantallaAlertas
 import com.stockpyme.app.ui.productos.PantallaDetalle
 import com.stockpyme.app.ui.productos.PantallaFormulario
 import com.stockpyme.app.ui.productos.PantallaProductos
+import com.stockpyme.app.ui.panel.PantallaPanel
+import com.stockpyme.app.ui.venta.PantallaVenta
+import com.stockpyme.app.ui.reposicion.PantallaReposicion
 
 /** Rutas de navegación de la app. */
 object Rutas {
+    const val INICIO = "inicio"
+    const val VENTA = "venta"
+    const val REPOSICION = "reposicion"
     const val PRODUCTOS = "productos"
     const val ALERTAS = "alertas"
     const val ACTIVIDAD = "actividad"
@@ -74,6 +82,7 @@ private data class Pestana(
 )
 
 private val pestanas = listOf(
+    Pestana(Rutas.INICIO, "Inicio", Icons.Filled.Home, Icons.Outlined.Home),
     Pestana(Rutas.PRODUCTOS, "Productos", Icons.Filled.Inventory2, Icons.Outlined.Inventory2),
     Pestana(Rutas.ALERTAS, "Alertas", Icons.Filled.NotificationsActive, Icons.Outlined.NotificationsActive),
     Pestana(Rutas.ACTIVIDAD, "Actividad", Icons.Filled.History, Icons.Outlined.History),
@@ -118,9 +127,22 @@ fun AppPrincipal(usuario: Usuario) {
     ) { margenes ->
         NavHost(
             navController = nav,
-            startDestination = Rutas.PRODUCTOS,
+            startDestination = Rutas.INICIO,
             modifier = Modifier.padding(bottom = margenes.calculateBottomPadding()),
         ) {
+            composable(Rutas.INICIO) {
+                PantallaPanel(
+                    usuario = usuario,
+                    onAbrir = { nav.navigate(Rutas.detalle(it)) },
+                    onVender = { nav.navigate(Rutas.VENTA) },
+                    onReponer = { nav.navigate(Rutas.REPOSICION) },
+                    onNuevo = { codigo -> nav.navigate(Rutas.nuevo(codigo)) },
+                    onVerAlertas = { irAPestana(nav, Rutas.ALERTAS) },
+                    onVerActividad = { irAPestana(nav, Rutas.ACTIVIDAD) },
+                )
+            }
+            composable(Rutas.VENTA) { PantallaVenta(onAtras = { nav.popBackStack() }) }
+            composable(Rutas.REPOSICION) { PantallaReposicion(onAtras = { nav.popBackStack() }) }
             composable(Rutas.PRODUCTOS) {
                 PantallaProductos(
                     usuario = usuario,

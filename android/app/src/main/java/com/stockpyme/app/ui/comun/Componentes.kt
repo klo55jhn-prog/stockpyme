@@ -135,6 +135,7 @@ fun Pantalla(
     grande: Boolean = onAtras == null,
     acciones: @Composable RowScope.() -> Unit = {},
     botonFlotante: @Composable () -> Unit = {},
+    barraInferior: @Composable () -> Unit = {},
     contenido: @Composable (PaddingValues) -> Unit,
 ) {
     val scroll = if (grande) {
@@ -179,6 +180,7 @@ fun Pantalla(
         },
         snackbarHost = { SnackbarHost(snackbar) },
         floatingActionButton = botonFlotante,
+        bottomBar = barraInferior,
         content = contenido,
     )
 }

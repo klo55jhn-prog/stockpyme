@@ -1,5 +1,6 @@
 package com.stockpyme.backend.servicio;
 
+import com.stockpyme.backend.dto.LineaReposicionDto;
 import com.stockpyme.backend.dto.ProductoDto;
 import com.stockpyme.backend.dto.ProductoRequest;
 import com.stockpyme.backend.error.ApiException;
@@ -38,6 +39,12 @@ public class ProductoService {
     @Transactional(readOnly = true)
     public List<ProductoDto> bajoMinimo() {
         return productoRepository.findBajoMinimo().stream().map(ProductoDto::de).toList();
+    }
+
+    /** V2: lista de la compra. Productos en el mínimo, con cuánto pedir y a quién. */
+    @Transactional(readOnly = true)
+    public List<LineaReposicionDto> reposicion() {
+        return productoRepository.findBajoMinimo().stream().map(LineaReposicionDto::de).toList();
     }
 
     @Transactional(readOnly = true)
